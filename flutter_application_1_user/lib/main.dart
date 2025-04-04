@@ -7,6 +7,7 @@ import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1_user/views/screens/authentication/sign_in_screen.dart';
 import 'firebase_options.dart';
+import 'package:flutter_application_1_user/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +33,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Furever Home',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.theme,
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             return StreamBuilder<User?>(

@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1_user/models/dog_model.dart';
+import 'package:flutter_application_1_user/widgets/shared_drawer.dart';
 
 class DogScreen extends StatelessWidget {
-  const DogScreen({super.key});
+   DogScreen({super.key});
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer:  SharedDrawer(),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF32649B),
         title: const Text('Available Dogs'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -20,6 +26,18 @@ class DogScreen extends StatelessWidget {
             icon: const Icon(Icons.filter_list),
             onPressed: () {
               // TODO: Implement filtering
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              // TODO: Implement search
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              _scaffoldKey.currentState?.openEndDrawer();
             },
           ),
         ],

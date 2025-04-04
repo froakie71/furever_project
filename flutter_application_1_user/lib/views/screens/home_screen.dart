@@ -6,8 +6,8 @@ import 'package:flutter_application_1_user/views/screens/dog_screen.dart';
 import 'package:flutter_application_1_user/views/screens/donation_screen.dart';
 import 'package:flutter_application_1_user/views/screens/event_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
+import 'package:flutter_application_1_user/widgets/shared_drawer.dart';
 import 'medical_services_screen.dart';
-import 'about_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String userName = '';
   String userEmail = '';
   String? userPhotoUrl;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -56,126 +57,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: SharedDrawer(),
       appBar: AppBar(
         title: Image.asset('assets/images/Furever_logo.png', height: 40),
         centerTitle: true,
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
+        actions: [
+          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              _scaffoldKey.currentState?.openEndDrawer();
+            },
+          ),
+        ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                backgroundImage:
-                    userPhotoUrl != null ? NetworkImage(userPhotoUrl!) : null,
-                child:
-                    userPhotoUrl == null
-                        ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                        : null,
-              ),
-              accountName: Text(userName),
-              accountEmail: Text(userEmail),
-            ),
-            ListTile(
-              leading: const Icon(Icons.event),
-              title: const Text('Events'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const EventScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.pets),
-              title: const Text('Dogs'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const DogScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.volunteer_activism),
-              title: const Text('Donate'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DonationScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.favorite),
-              title: const Text('Adopted'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AdoptedDogsScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.medical_services),
-              title: const Text('Medical Services'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MedicalServicesScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.shopping_bag),
-              title: const Text('Merch'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MerchScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('About Us'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AboutScreen()),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () {
-                context.read<AuthBloc>().add(SignOutRequested());
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const SignInScreen()),
-                  (route) => false,
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -300,67 +197,69 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Dogs for Adoption',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(8),
-                            ),
-                            child: Image.asset(
-                              'assets/images/Furever_logo.png',
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Dog ${index + 1}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Age: 2 years • Gender: Male\nBreed: Mixed',
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text('Learn More'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                SizedBox(height: 32),
+                //               const Text(
+                //                 'Dogs for Adoption',
+                //                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                //               ),
+                //               const SizedBox(height: 16),
+                //               ListView.builder(
+                //                 shrinkWrap: true,
+                //                 physics: const NeverScrollableScrollPhysics(),
+                //                 itemCount: 5,
+                //                 itemBuilder: (context, index) {
+                //                   return Card(
+                //                     margin: const EdgeInsets.only(bottom: 16),
+                //                     child: Column(
+                //                       crossAxisAlignment: CrossAxisAlignment.start,
+                //                       children: [
+                //                         ClipRRect(
+                //                           borderRadius: const BorderRadius.vertical(
+                //                             top: Radius.circular(8),
+                //                           ),
+                //                           child: Image.asset(
+                //                             'assets/images/Furever_logo.png',
+                //                             height: 200,
+                //                             width: double.infinity,
+                //                             fit: BoxFit.cover,
+                //                           ),
+                //                         ),
+                //                         Padding(
+                //                           padding: const EdgeInsets.all(16),
+                //                           child: Column(
+                //                             crossAxisAlignment: CrossAxisAlignment.start,
+                //                             children: [
+                //                               Text(
+                //                                 'Dog ${index + 1}',
+                //                                 style: const TextStyle(
+                //                                   fontSize: 20,
+                //                                   fontWeight: FontWeight.bold,
+                //                                 ),
+                //                               ),
+                //                               const SizedBox(height: 8),
+                //                               Text(
+                //                                 'Age: 2 years • Gender: Male\nBreed: Mixed',
+                //                                 style: TextStyle(color: Colors.grey[600]),
+                //                               ),
+                //                               const SizedBox(height: 16),
+                //                               ElevatedButton(
+                //                                 onPressed: () {},
+                //                                 style: ElevatedButton.styleFrom(
+                //                                   backgroundColor: Colors.orange,
+                //                                   foregroundColor: Colors.white,
+                //                                 ),
+                //                                 child: const Text('Learn More'),
+                //                               ),
+                //                             ],
+                //                           ),
+                //                         ),
+                //                       ],
+                //                     ),
+                //                   );
+                //                 },
+                //               ),
+                //               const SizedBox(height: 32),
+                _buildAboutUsSection(),
               ],
             ),
           ),
@@ -386,12 +285,12 @@ class _HomeScreenState extends State<HomeScreen> {
         } else if (title == 'Events') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const EventScreen()),
+            MaterialPageRoute(builder: (context) => EventScreen()),
           );
         } else if (title == 'Dogs') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const DogScreen()),
+            MaterialPageRoute(builder: (context) => DogScreen()),
           );
         } else if (title == 'Adopted') {
           Navigator.push(
@@ -401,14 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
         } else if (title == 'Medical') {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const MedicalServicesScreen(),
-            ),
-          );
-        } else if (title == 'About') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AboutScreen()),
+            MaterialPageRoute(builder: (context) => MedicalServicesScreen()),
           );
         }
       },
@@ -441,6 +333,162 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAboutUsSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'About Us',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF32649B),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Hero Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              'assets/images/about_us_banner.jpg', // Add this image to your assets
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback container if image fails to load
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.pets, size: 50, color: Colors.grey[600]),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Furever Home',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Mission
+          const Text(
+            'Our Mission',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF32649B),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'To provide loving homes for abandoned and rescued dogs through responsible adoption, while promoting animal welfare education and compassionate pet care in our community.',
+            style: TextStyle(fontSize: 16, height: 1.5),
+          ),
+          const SizedBox(height: 24),
+
+          // Impact Stats
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Our Impact',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF32649B),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatCard('500+', 'Dogs\nRescued'),
+                    _buildStatCard('400+', 'Happy\nAdopters'),
+                    _buildStatCard('50+', 'Partner\nVets'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Contact Info
+          const Text(
+            'Get in Touch',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF32649B),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildContactTile(
+            Icons.location_on,
+            'Visit Us',
+            '123 Pet Street, Manila, Philippines',
+          ),
+          _buildContactTile(Icons.email, 'Email Us', 'contact@fureverhome.org'),
+          _buildContactTile(Icons.phone, 'Call Us', '+63 123 456 7890'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String value, String label) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.orange,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12, color: Colors.black87),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContactTile(IconData icon, String title, String subtitle) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Colors.orange.shade100,
+        child: Icon(icon, color: Colors.orange),
+      ),
+      title: Text(title),
+      subtitle: Text(subtitle),
     );
   }
 }
