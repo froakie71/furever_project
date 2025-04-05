@@ -27,7 +27,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          color: Color(0xFF32649B), // Light blue background
+          color: Color(0xFF32649B),
           child: Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: 24.0, vertical: 24.0),

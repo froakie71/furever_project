@@ -1,29 +1,199 @@
 import 'package:flutter/material.dart';
+import 'package:furever_home/views/screens/adopted_dogs_screen.dart';
+import 'package:furever_home/views/screens/dog_screen.dart';
+import 'package:furever_home/views/screens/donation_screen.dart';
+import 'package:furever_home/views/screens/merch_screen.dart';
+import 'package:furever_home/views/screens/home_screen.dart';
+import 'medical_services_screen.dart';
 
 class EventScreen extends StatelessWidget {
-  const EventScreen({super.key});
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  EventScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Pet Events'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        backgroundColor: const Color(0xFF32649B),
+        automaticallyImplyLeading: false,
+        title: InkWell(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(),
+              ),
+            );
+          },
+          child: Image.asset(
+            'assets/images/Furever_logo.png',
+            height: 80,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(
+                right: 16.0), // Adjust the value as needed
+            child: IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () {
+                _scaffoldKey.currentState?.openEndDrawer();
+              },
+            ),
+          ),
+        ],
+      ),
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const UserAccountsDrawerHeader(
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.person,
+                  size: 50,
+                  color: Colors.grey,
+                ),
+              ),
+              accountName: Text('John Doe'),
+              accountEmail: Text('johndoe@example.com'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.event),
+              title: const Text('Events'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.pets),
+              title: const Text('Dogs'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DogScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.volunteer_activism),
+              title: const Text('Donate'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DonationScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text('Adopted'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdoptedDogsScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.medical_services),
+              title: const Text('Medical Services'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MedicalServicesScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_bag),
+              title: const Text('Merch'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MerchScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () {
+                // TODO: Implement logout functionality
+                Navigator.pop(context);
+              },
+            ),
+          ],
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          return Card(
+      body:Container(
+  child: ListView.builder(
+    padding: const EdgeInsets.all(16),
+    itemCount: 5,
+    itemBuilder: (context, index) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (index == 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 15),
+              child: Text(
+                'Upcoming Events',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF32649B),
+                ),
+              ),
+            ),
+
+          // Card Widget
+          Card(
             margin: const EdgeInsets.only(bottom: 16),
+            color: const Color.fromARGB(255, 22, 79, 139),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   height: 200,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(4),
@@ -84,6 +254,7 @@ class EventScreen extends StatelessWidget {
                       Text(
                         _getEventTitle(index),
                         style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -92,12 +263,12 @@ class EventScreen extends StatelessWidget {
                       Row(
                         children: [
                           const Icon(Icons.location_on,
-                              size: 16, color: Colors.grey),
+                              size: 16, color: Colors.white),
                           const SizedBox(width: 4),
                           Text(
                             _getEventLocation(index),
                             style: const TextStyle(
-                              color: Colors.grey,
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -106,7 +277,7 @@ class EventScreen extends StatelessWidget {
                       Text(
                         _getEventDescription(index),
                         style: const TextStyle(
-                          color: Colors.black87,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -131,14 +302,13 @@ class EventScreen extends StatelessWidget {
                 ),
               ],
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.orange,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+          ),
+        ],
+      );
+    },
+  ),
+),
+
     );
   }
 

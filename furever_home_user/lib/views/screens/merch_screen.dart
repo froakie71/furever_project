@@ -3,9 +3,8 @@ import 'package:furever_home/views/screens/event_screen.dart';
 import 'package:furever_home/views/screens/adopted_dogs_screen.dart';
 import 'package:furever_home/views/screens/dog_screen.dart';
 import 'package:furever_home/views/screens/donation_screen.dart';
+import 'package:furever_home/views/screens/home_screen.dart';
 import 'medical_services_screen.dart';
-import 'about_screen.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 class MerchScreen extends StatefulWidget {
@@ -19,6 +18,31 @@ class _MerchScreenState extends State<MerchScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _searchQuery = '';
   String _selectedCategory = '';
+  final String _defaultSearchHint = 'Search items...';
+  String _searchHint = 'Search items...';
+  
+  // Add mapping of categories to search hints
+  final Map<String, String> _categorySearchHints = {
+    'Treats': 'Search in treats section',
+    'Toys': 'Search in toys section',
+    'Health': 'Search in health section',
+    'Accessories': 'Search in accessories section',
+  };
+
+  // Update category button onPressed method
+  void _updateCategory(String category) {
+    setState(() {
+      _selectedCategory = category;
+      _searchHint = _categorySearchHints[category] ?? 'Search items...';
+    });
+  }
+
+  void _resetSearchHint() {
+    setState(() {
+      _selectedCategory = '';
+      _searchHint = _defaultSearchHint;
+    });
+  }
 
   void _showProductDetails(Map<String, dynamic> product) {
   showDialog(
@@ -221,6 +245,19 @@ class _MerchScreenState extends State<MerchScreen> {
               accountName: Text('John Doe'),
               accountEmail: Text('johndoe@example.com'),
             ),
+             ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeScreen(),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.event),
               title: const Text('Events'),
@@ -229,7 +266,7 @@ class _MerchScreenState extends State<MerchScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const EventScreen(),
+                    builder: (context) => EventScreen(),
                   ),
                 );
               },
@@ -242,7 +279,7 @@ class _MerchScreenState extends State<MerchScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const DogScreen(),
+                    builder: (context) => DogScreen(),
                   ),
                 );
               },
@@ -281,7 +318,7 @@ class _MerchScreenState extends State<MerchScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const MedicalServicesScreen(),
+                    builder: (context) => MedicalServicesScreen(),
                   ),
                 );
               },
@@ -295,19 +332,6 @@ class _MerchScreenState extends State<MerchScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const MerchScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('About Us'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AboutScreen(),
                   ),
                 );
               },
@@ -352,7 +376,7 @@ class _MerchScreenState extends State<MerchScreen> {
                                 });
                               },
                               decoration: InputDecoration(
-                                hintText: 'Search items...',
+                                hintText: _searchHint,
                                 border: InputBorder.none,
                                 hintStyle: TextStyle(color: Colors.grey[600]),
                                 contentPadding: const EdgeInsets.only(left: 16),
@@ -385,11 +409,7 @@ class _MerchScreenState extends State<MerchScreen> {
                 child: Row(
                   children: [
                     ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _selectedCategory = 'Treats';
-                        });
-                      },
+                      onPressed: () => _updateCategory('Treats'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF32649B),
@@ -404,11 +424,7 @@ class _MerchScreenState extends State<MerchScreen> {
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _selectedCategory = 'Toys';
-                        });
-                      },
+                      onPressed: () => _updateCategory('Toys'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF32649B),
@@ -423,11 +439,7 @@ class _MerchScreenState extends State<MerchScreen> {
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _selectedCategory = 'Health';
-                        });
-                      },
+                      onPressed: () => _updateCategory('Health'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF32649B),
@@ -442,11 +454,7 @@ class _MerchScreenState extends State<MerchScreen> {
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _selectedCategory = 'Accessories';
-                        });
-                      },
+                      onPressed: () => _updateCategory('Accessories'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF32649B),
@@ -476,13 +484,8 @@ class _MerchScreenState extends State<MerchScreen> {
                       color: Colors.white,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _selectedCategory = ''; // Clear category filter
-                        _searchQuery = ''; // Optional: clear search query too
-                      });
-                    },
+                  GestureDetector(
+                    onTap: _resetSearchHint,
                     child: const Text(
                       'See all',
                       style: TextStyle(
