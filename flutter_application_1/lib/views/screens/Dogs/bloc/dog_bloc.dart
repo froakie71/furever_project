@@ -16,13 +16,18 @@ class DogBloc extends Bloc<DogEvent, DogState> {
         String imageUrl = '';
         if (event.imageUrl.isNotEmpty) {
           final storageRef = FirebaseStorage.instance.ref();
-          final imageRef = storageRef
-              .child('dogs/${DateTime.now().millisecondsSinceEpoch}.jpg');
+          final imageRef = storageRef.child(
+            'dogs/${DateTime.now().millisecondsSinceEpoch}.jpg',
+          );
 
           if (kIsWeb) {
             // Handle web image upload
-            final bytes = Uint8List.fromList(event.imageUrl.codeUnits);
-            await imageRef.putData(bytes);
+            // final bytes = Uint8List.fromList(event.imageUrl.codeUnits);
+            final bytes = event.imageBytes;
+            await imageRef.putData(
+              bytes,
+              SettableMetadata(contentType: 'image/jpeg'),
+            );
           } else {
             // Handle mobile image upload
             final file = File(event.imageUrl);
