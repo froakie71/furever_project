@@ -12,10 +12,11 @@ class AddDogScreen extends StatefulWidget {
 
   static Route<void> route() {
     return MaterialPageRoute(
-      builder: (context) => BlocProvider(
-        create: (context) => DogBloc(), // Provide DogBloc here
-        child: const AddDogScreen(),
-      ),
+      builder:
+          (context) => BlocProvider(
+            create: (context) => DogBloc(), // Provide DogBloc here
+            child: const AddDogScreen(),
+          ),
     );
   }
 
@@ -60,9 +61,9 @@ class _AddDogScreenState extends State<AddDogScreen> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
     }
   }
 
@@ -82,9 +83,7 @@ class _AddDogScreenState extends State<AddDogScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Dog'),
-      ),
+      appBar: AppBar(title: const Text('Add New Dog')),
       body: BlocListener<DogBloc, DogState>(
         listener: (context, state) {
           if (state is DogSuccess) {
@@ -93,9 +92,9 @@ class _AddDogScreenState extends State<AddDogScreen> {
               const SnackBar(content: Text('Dog added successfully')),
             );
           } else if (state is DogError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: SingleChildScrollView(
@@ -126,8 +125,9 @@ class _AddDogScreenState extends State<AddDogScreen> {
                     labelText: 'Name',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'Please enter a name' : null,
+                  validator:
+                      (value) =>
+                          value?.isEmpty ?? true ? 'Please enter a name' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -136,8 +136,11 @@ class _AddDogScreenState extends State<AddDogScreen> {
                     labelText: 'Breed',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'Please enter a breed' : null,
+                  validator:
+                      (value) =>
+                          value?.isEmpty ?? true
+                              ? 'Please enter a breed'
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -146,12 +149,15 @@ class _AddDogScreenState extends State<AddDogScreen> {
                     labelText: 'Gender',
                     border: OutlineInputBorder(),
                   ),
-                  items: ['Male', 'Female']
-                      .map((gender) => DropdownMenuItem(
-                            value: gender,
-                            child: Text(gender),
-                          ))
-                      .toList(),
+                  items:
+                      ['Male', 'Female']
+                          .map(
+                            (gender) => DropdownMenuItem(
+                              value: gender,
+                              child: Text(gender),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedGender = value!;
@@ -165,12 +171,15 @@ class _AddDogScreenState extends State<AddDogScreen> {
                     labelText: 'Size',
                     border: OutlineInputBorder(),
                   ),
-                  items: ['Small', 'Medium', 'Large']
-                      .map((size) => DropdownMenuItem(
-                            value: size,
-                            child: Text(size),
-                          ))
-                      .toList(),
+                  items:
+                      ['Small', 'Medium', 'Large']
+                          .map(
+                            (size) => DropdownMenuItem(
+                              value: size,
+                              child: Text(size),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (value) {
                     setState(() {
                       _selectedSize = value!;
@@ -178,9 +187,10 @@ class _AddDogScreenState extends State<AddDogScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Medical Records',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Medical Records',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _medicalRecordController,
@@ -192,13 +202,15 @@ class _AddDogScreenState extends State<AddDogScreen> {
                   maxLines: 3,
                   onChanged: (value) {
                     setState(() {
-                      _medicalRecords['Vaccinated'] =
-                          value.toLowerCase().contains('vaccinated');
-                      _medicalRecords['Dewormed'] =
-                          value.toLowerCase().contains('dewormed');
+                      _medicalRecords['Vaccinated'] = value
+                          .toLowerCase()
+                          .contains('vaccinated');
+                      _medicalRecords['Dewormed'] = value
+                          .toLowerCase()
+                          .contains('dewormed');
                       _medicalRecords['Spayed/Neutered'] =
                           value.toLowerCase().contains('spayed') ||
-                              value.toLowerCase().contains('neutered');
+                          value.toLowerCase().contains('neutered');
                     });
                   },
                 ),
@@ -210,9 +222,11 @@ class _AddDogScreenState extends State<AddDogScreen> {
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 3,
-                  validator: (value) => value?.isEmpty ?? true
-                      ? 'Please enter a description'
-                      : null,
+                  validator:
+                      (value) =>
+                          value?.isEmpty ?? true
+                              ? 'Please enter a description'
+                              : null,
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -228,16 +242,17 @@ class _AddDogScreenState extends State<AddDogScreen> {
                         }
 
                         context.read<DogBloc>().add(
-                              AddDog(
-                                name: _nameController.text,
-                                breed: _breedController.text,
-                                gender: _selectedGender,
-                                size: _selectedSize,
-                                medicalRecords: _medicalRecords,
-                                imageUrl: imageData,
-                                description: _descriptionController.text,
-                              ),
-                            );
+                          AddDog(
+                            name: _nameController.text,
+                            breed: _breedController.text,
+                            gender: _selectedGender,
+                            size: _selectedSize,
+                            medicalRecords: _medicalRecords,
+                            imageUrl: imageData,
+                            imageBytes: webImage!, // pass the Uint8List type
+                            description: _descriptionController.text,
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
