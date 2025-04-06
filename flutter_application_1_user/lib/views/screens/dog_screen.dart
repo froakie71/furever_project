@@ -1,59 +1,116 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1_user/bloc/adoption/adoption_bloc.dart';
+import 'package:flutter_application_1_user/bloc/adoption/adoption_event.dart';
+import 'package:flutter_application_1_user/bloc/adoption/adoption_state.dart';
 import 'package:flutter_application_1_user/models/dog_model.dart';
+import 'package:flutter_application_1_user/views/screens/home_screen.dart';
+import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DogScreen extends StatelessWidget {
-  const DogScreen({super.key});
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  DogScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Available Dogs'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        backgroundColor: const Color(0xFF32649B),
+        automaticallyImplyLeading: false,
+        title: InkWell(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          },
+          child: Image.asset('assets/images/Furever_logo.png', height: 80),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // TODO: Implement filtering
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+            ),
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('dogs').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+      endDrawer: const SharedDrawer(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Available Dogs',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF32649B),
+                  ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.filter_list),
+                      onPressed: () {
+                        // TODO: Implement filtering
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () {
+                        // TODO: Implement search
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('dogs').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No dogs available for adoption'));
-          }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                    child: Text('No dogs available for adoption'),
+                  );
+                }
 
-          final dogs =
-              snapshot.data!.docs.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                return Dog.fromFirestore(data, doc.id);
-              }).toList();
+                final dogs =
+                    snapshot.data!.docs.map((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      return Dog.fromFirestore(data, doc.id);
+                    }).toList();
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: dogs.length,
-            itemBuilder: (context, index) {
-              final dog = dogs[index];
-              return _buildDogCard(context, dog);
-            },
-          );
-        },
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: dogs.length,
+                  itemBuilder: (context, index) {
+                    final dog = dogs[index];
+                    return _buildDogCard(context, dog);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -86,6 +143,32 @@ class DogScreen extends StatelessWidget {
                     },
                   ),
                 ),
+                if (dog.status == 'adopted' || dog.status == 'pending')
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getStatusBadgeColor(dog.status),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _getStatusBadgeText(
+                          dog.status,
+                          dog.adoptedBy?['userEmail'],
+                        ),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
             Padding(
@@ -118,13 +201,19 @@ class DogScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => _showAdoptionForm(context, dog),
+                    onPressed:
+                        (dog.status == 'adopted' || dog.status == 'pending')
+                            ? null
+                            : () => _showAdoptionForm(context, dog),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
+                      backgroundColor: _getButtonColor(dog.status),
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 48),
+                      disabledBackgroundColor: _getDisabledButtonColor(
+                        dog.status,
+                      ),
                     ),
-                    child: const Text('Adopt Me'),
+                    child: Text(_getButtonText(dog.status)),
                   ),
                 ],
               ),
@@ -144,31 +233,79 @@ class DogScreen extends StatelessWidget {
       return;
     }
 
-    try {
-      await FirebaseFirestore.instance.collection('adoptions').add({
-        'dogId': dog.id,
-        'dogName': dog.name,
-        'userId': currentUser.uid,
-        'userEmail': currentUser.email,
-        'status': 'pending',
-        'submittedAt': FieldValue.serverTimestamp(),
-      });
-
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Adoption application submitted successfully!'),
+    // Show confirmation dialog first
+    final shouldProceed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Adoption'),
+          content: const Text(
+            'Are you sure you want to start the adoption process?',
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: const Text('Proceed'),
+            ),
+          ],
         );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error submitting application: $e')),
-        );
-      }
-    }
+      },
+    );
+
+    if (shouldProceed != true || !context.mounted) return;
+
+    // Submit adoption request
+    context.read<AdoptionBloc>().add(
+      SubmitAdoption(
+        dog: dog,
+        userId: currentUser.uid,
+        userEmail: currentUser.email ?? '',
+      ),
+    );
+
+    // Show processing dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => BlocListener<AdoptionBloc, AdoptionState>(
+            listener: (context, state) {
+              if (state is AdoptionSuccess) {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Close dog details
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Adoption process started successfully!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else if (state is AdoptionError) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${state.message}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: BlocBuilder<AdoptionBloc, AdoptionState>(
+              builder: (context, state) {
+                if (state is AdoptionLoading) {
+                  return const AlertDialog(
+                    content: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+    );
   }
 
   Widget _buildInfoChip(IconData icon, String label) {
@@ -335,5 +472,60 @@ class DogScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Color _getStatusBadgeColor(String status) {
+    switch (status) {
+      case 'adopted':
+        return Colors.black54;
+      case 'pending':
+        return Colors.orange.withOpacity(0.8);
+      default:
+        return Colors.green;
+    }
+  }
+
+  String _getStatusBadgeText(String status, String? userEmail) {
+    switch (status) {
+      case 'adopted':
+        return 'Adopted by ${userEmail ?? 'Someone'}';
+      case 'pending':
+        return 'Ongoing Adoption Process';
+      default:
+        return 'Available';
+    }
+  }
+
+  Color _getButtonColor(String status) {
+    switch (status) {
+      case 'adopted':
+        return Colors.grey;
+      case 'pending':
+        return Colors.orange.shade300;
+      default:
+        return Colors.orange;
+    }
+  }
+
+  Color _getDisabledButtonColor(String status) {
+    switch (status) {
+      case 'adopted':
+        return Colors.grey.shade300;
+      case 'pending':
+        return Colors.orange.shade200;
+      default:
+        return Colors.grey.shade300;
+    }
+  }
+
+  String _getButtonText(String status) {
+    switch (status) {
+      case 'adopted':
+        return 'Already Adopted';
+      case 'pending':
+        return 'Ongoing Adoption Process';
+      default:
+        return 'Adopt Me';
+    }
   }
 }

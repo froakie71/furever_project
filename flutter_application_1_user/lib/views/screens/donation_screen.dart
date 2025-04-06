@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1_user/views/screens/adopted_dogs_screen.dart';
+import 'package:flutter_application_1_user/views/screens/dog_screen.dart';
+import 'package:flutter_application_1_user/views/screens/event_screen.dart';
+import 'package:flutter_application_1_user/views/screens/home_screen.dart';
+import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
+import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
+import 'medical_services_screen.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -11,72 +18,105 @@ class DonationScreen extends StatefulWidget {
 }
 
 class _DonationScreenState extends State<DonationScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
-  File? _image;
+  File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _uploadImage() async {
-    try {
-      // Request permission first
-      final permissionStatus = await Permission.storage.request();
-
-      if (permissionStatus.isGranted) {
-        final XFile? pickedFile = await _picker.pickImage(
-          source: ImageSource.gallery,
-          maxWidth: 1800,
-          maxHeight: 1800,
-        );
-
-        if (pickedFile != null) {
-          setState(() {
-            _image = File(pickedFile.path);
-          });
-        }
-      } else {
-        throw Exception('Storage permission denied');
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-          action: SnackBarAction(
-            label: 'Retry',
-            textColor: Colors.white,
-            onPressed: _uploadImage,
-          ),
-        ),
-      );
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
     }
   }
+
+  // Future<void> _uploadImage() async {
+  //   try {
+  //     // Request permission first
+  //     final permissionStatus = await Permission.storage.request();
+
+  //     if (permissionStatus.isGranted) {
+  //       final XFile? pickedFile = await _picker.pickImage(
+  //         source: ImageSource.gallery,
+  //         maxWidth: 1800,
+  //         maxHeight: 1800,
+  //       );
+
+  //       if (pickedFile != null) {
+  //         setState(() {
+  //           _image = File(pickedFile.path);
+  //         });
+  //       }
+  //     } else {
+  //       throw Exception('Storage permission denied');
+  //     }
+  //   } catch (e) {
+  //     if (!mounted) return;
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(e.toString()),
+  //         backgroundColor: Colors.red,
+  //         duration: const Duration(seconds: 3),
+  //         action: SnackBarAction(
+  //           label: 'Retry',
+  //           textColor: Colors.white,
+  //           onPressed: _uploadImage,
+  //         ),
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Donate'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        backgroundColor: const Color(0xFF32649B),
+        automaticallyImplyLeading: false,
+        title: InkWell(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+          child: Image.asset('assets/images/Furever_logo.png', height: 80),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(
+              right: 16.0,
+            ), // Adjust the value as needed
+            child: IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () {
+                _scaffoldKey.currentState?.openEndDrawer();
+              },
+            ),
+          ),
+        ],
       ),
+      endDrawer: SharedDrawer(),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Top Donators Section
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(25),
               color: Colors.orange.shade50,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
-                    'Top Donators',
+                    'Top Donators 📈',
                     style: TextStyle(
+                      color: Color.fromARGB(255, 255, 133, 33),
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -110,16 +150,23 @@ class _DonationScreenState extends State<DonationScreen> {
                 ],
               ),
             ),
-
+            const SizedBox(height: 16),
             // Donation Form
-            Padding(
+            Container(
+              alignment: Alignment.center,
+              width: 350,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 133, 192, 255),
+                borderRadius: BorderRadius.circular(16),
+              ),
               padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     'Make a Donation',
                     style: TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255),
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -128,7 +175,7 @@ class _DonationScreenState extends State<DonationScreen> {
                   Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Center(
                           child: Stack(
@@ -140,35 +187,38 @@ class _DonationScreenState extends State<DonationScreen> {
                                   color: Colors.grey[200],
                                   shape: BoxShape.circle,
                                 ),
-                                child: _image != null
-                                    ? ClipOval(
-                                        child: Image.file(
-                                          _image!,
-                                          width: 120,
-                                          height: 120,
-                                          fit: BoxFit.cover,
+                                child:
+                                    _imageFile != null
+                                        ? ClipOval(
+                                          child: Image.file(
+                                            _imageFile!,
+                                            width: 120,
+                                            height: 120,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.pets,
+                                          size: 50,
+                                          color: Colors.grey,
                                         ),
-                                      )
-                                    : const Icon(
-                                        Icons.pets,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      ),
                               ),
                               Positioned(
                                 bottom: 0,
                                 right: 0,
-                                child: CircleAvatar(
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
-                                  radius: 18,
-                                  child: IconButton(
-                                    icon: const Icon(
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: InkWell(
+                                    onTap: _pickImage,
+                                    child: const Icon(
                                       Icons.add_a_photo,
-                                      size: 18,
                                       color: Colors.white,
+                                      size: 22,
                                     ),
-                                    onPressed: _uploadImage,
                                   ),
                                 ),
                               ),
@@ -201,11 +251,14 @@ class _DonationScreenState extends State<DonationScreen> {
                                 // TODO: Implement form submission
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                      content: Text('Processing Data')),
+                                    content: Text('Processing Data'),
+                                  ),
                                 );
                               }
                             },
                             style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF32649B),
+                              foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -214,7 +267,9 @@ class _DonationScreenState extends State<DonationScreen> {
                             child: const Text(
                               'Submit',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -242,13 +297,7 @@ class _DonationScreenState extends State<DonationScreen> {
   }
 
   String _getDonationAmount(int index) {
-    final amounts = [
-      '₱50,000',
-      '₱35,000',
-      '₱25,000',
-      '₱20,000',
-      '₱18,000',
-    ];
+    final amounts = ['₱50,000', '₱35,000', '₱25,000', '₱20,000', '₱18,000'];
     return amounts[index];
   }
 

@@ -7,6 +7,8 @@ class Dog {
   final String imageUrl;
   final String size;
   final Map<String, bool> medicalRecords;
+  final String status;
+  final Map<String, dynamic>? adoptedBy;
 
   Dog({
     required this.id,
@@ -17,6 +19,8 @@ class Dog {
     required this.imageUrl,
     required this.size,
     required this.medicalRecords,
+    this.status = 'available',
+    this.adoptedBy,
   });
 
   factory Dog.fromFirestore(Map<String, dynamic> data, String id) {
@@ -33,6 +37,8 @@ class Dog {
         'Spayed/Neutered': false,
         'Vaccinated': false,
       }),
+      status: data['status'] ?? 'available',
+      adoptedBy: data['adoptedBy'] as Map<String, dynamic>?,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_application_1_user/bloc/adoption/adoption_bloc.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_bloc.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_state.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
@@ -19,7 +20,16 @@ void main() async {
     debugPrint('Firebase initialization error: $e');
   }
 
-  runApp(const MyApp());
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => AuthBloc()),
+        // ...other providers
+        BlocProvider(create: (context) => AdoptionBloc()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -27,33 +37,39 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [BlocProvider<AuthBloc>(create: (context) => AuthBloc())],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Furever Home',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Furever Home',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF32649B),
+          secondary: Color.fromARGB(255, 46, 199, 255),
         ),
-        home: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            return StreamBuilder<User?>(
-              stream: FirebaseAuth.instance.authStateChanges(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+        useMaterial3: true,
+      ),
+      home: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          // Handle auth state changes if needed
+        },
+        builder: (context, state) {
+          return StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-                if (snapshot.hasData && snapshot.data != null) {
-                  return const HomeScreen();
-                }
+              if (snapshot.hasData && snapshot.data != null) {
+                return const HomeScreen();
+              }
 
-                return const SignInScreen();
-              },
-            );
-          },
-        ),
+              return const SignInScreen();
+            },
+          );
+        },
       ),
     );
   }

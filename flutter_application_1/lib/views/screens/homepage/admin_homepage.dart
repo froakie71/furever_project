@@ -13,6 +13,7 @@ import 'package:flutter_application_1/views/screens/authentication/bloc/auth_blo
 import 'package:flutter_application_1/views/screens/authentication/bloc/auth_event.dart';
 import 'package:flutter_application_1/views/screens/authentication/login/admin_signin_view.dart';
 import 'package:flutter_application_1/views/screens/dashboard/dashboard.dart';
+import 'package:flutter_application_1/views/widgets/shared_drawer.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -26,7 +27,7 @@ class AdminHomeView extends StatelessWidget {
         title: const Text('Admin Homepage'),
         backgroundColor: Colors.blue[900],
       ),
-      drawer: _buildDrawer(context),
+      drawer: SharedDrawer(),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(
@@ -278,152 +279,6 @@ class AdminHomeView extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          UserAccountsDrawerHeader(
-            accountName: StreamBuilder<DocumentSnapshot>(
-              stream:
-                  FirebaseFirestore.instance
-                      .collection('admins')
-                      .doc(FirebaseAuth.instance.currentUser?.uid)
-                      .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data?.exists == true) {
-                  final adminData =
-                      snapshot.data?.data() as Map<String, dynamic>?;
-                  final adminName = adminData?['name'] ?? 'Admin User';
-                  return Text(
-                    adminName,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  );
-                }
-                return Text(
-                  'Admin User',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                );
-              },
-            ),
-            accountEmail: Text(
-              FirebaseAuth.instance.currentUser?.email ?? '',
-              style: const TextStyle(color: Colors.white),
-            ),
-            currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 40, color: Colors.blue),
-            ),
-            decoration: const BoxDecoration(color: Colors.blue),
-          ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text('Home'),
-            onTap: () {
-              // Stay on home page
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text('Dashboard'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DashboardScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.event),
-            title: const Text('Events'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const EventScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.pets),
-            title: const Text('Dogs'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const DogsListScreen()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.favorite),
-            title: const Text('Adopted'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdoptedDogsScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.people),
-            title: const Text('Clients'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ClientsView()),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.monetization_on),
-            title: const Text('Donations'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TopDonatorsScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.list),
-            title: const Text('Donation List'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DonationListScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.shopping_bag),
-            title: const Text('Merchandise'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MerchScreen()),
-              );
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Logout'),
-            onTap: () {
-              _handleLogout(context);
-            },
-          ),
-        ],
-      ),
     );
   }
 
