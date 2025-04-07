@@ -24,6 +24,8 @@ class AddDog extends DogEvent {
   });
 }
 
+class LoadDogs extends DogEvent {}
+
 class Dog {
   final String id;
   final String name;

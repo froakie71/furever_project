@@ -8,11 +8,13 @@ class DogsListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dogs List'),
-      ),
+      appBar: AppBar(title: const Text('Dogs List')),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('dogs').snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('dogs')
+                .orderBy('createdAt', descending: true) // Sort by newest first
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -56,6 +58,31 @@ class DogsListScreen extends StatelessWidget {
                               );
                             },
                           ),
+                        // Add status badge
+                        Positioned(
+                          top: 12,
+                          right: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(
+                                dog['status'] ?? 'available',
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              (dog['status'] ?? 'available').toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     Padding(
@@ -73,9 +100,7 @@ class DogsListScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             dog['breed'] ?? 'Unknown breed',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                            ),
+                            style: TextStyle(color: Colors.grey[600]),
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -90,9 +115,7 @@ class DogsListScreen extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 dog['gender'] ?? 'Unknown',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                ),
+                                style: TextStyle(color: Colors.grey[600]),
                               ),
                               const SizedBox(width: 16),
                               Icon(
@@ -103,9 +126,7 @@ class DogsListScreen extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 dog['size'] ?? 'Unknown size',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                ),
+                                style: TextStyle(color: Colors.grey[600]),
                               ),
                             ],
                           ),
@@ -114,8 +135,8 @@ class DogsListScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: ElevatedButton(
-                                  onPressed: () =>
-                                      _showDogDetails(context, dog),
+                                  onPressed:
+                                      () => _showDogDetails(context, dog),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue[900],
                                     foregroundColor: Colors.white,
@@ -183,29 +204,26 @@ class DogsListScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   dog['breed'] ?? 'Unknown breed',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
                   children: [
                     _buildDetailChip(
-                        Icons.straighten, dog['size'] ?? 'Unknown size'),
+                      Icons.straighten,
+                      dog['size'] ?? 'Unknown size',
+                    ),
                     _buildDetailChip(
-                        dog['gender'] == 'Male' ? Icons.male : Icons.female,
-                        dog['gender'] ?? 'Unknown'),
+                      dog['gender'] == 'Male' ? Icons.male : Icons.female,
+                      dog['gender'] ?? 'Unknown',
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   'Medical Records',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -221,10 +239,7 @@ class DogsListScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text(
                   'Description',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -255,15 +270,22 @@ class DogsListScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: Colors.grey[600]),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
+          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         ],
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'adopted':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'available':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 }

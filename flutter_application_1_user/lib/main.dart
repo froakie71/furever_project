@@ -4,7 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1_user/bloc/adoption/adoption_bloc.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_bloc.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_state.dart';
+import 'package:flutter_application_1_user/bloc/donation/donation_bloc.dart';
+import 'package:flutter_application_1_user/bloc/event_registration/event_registration_bloc.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
+import 'package:flutter_application_1_user/views/screens/participated_events_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1_user/views/screens/authentication/sign_in_screen.dart';
 import 'firebase_options.dart';
@@ -26,6 +29,8 @@ void main() async {
         BlocProvider(create: (context) => AuthBloc()),
         // ...other providers
         BlocProvider(create: (context) => AdoptionBloc()),
+        BlocProvider(create: (context) => EventRegistrationBloc()),
+        BlocProvider(create: (context) => DonationBloc()),
       ],
       child: const MyApp(),
     ),
@@ -48,6 +53,9 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      routes: {
+        '/participated-events': (context) => const ParticipatedEventsScreen(),
+      },
       home: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           // Handle auth state changes if needed

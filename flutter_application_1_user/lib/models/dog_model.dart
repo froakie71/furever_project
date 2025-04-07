@@ -1,44 +1,43 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Dog {
   final String id;
   final String name;
   final String breed;
-  final String description;
   final String gender;
-  final String imageUrl;
   final String size;
-  final Map<String, bool> medicalRecords;
+  final String description;
+  final String imageUrl;
   final String status;
-  final Map<String, dynamic>? adoptedBy;
+  final Map<String, bool> medicalRecords; // Change this to Map<String, bool>
+  final String? adoptedBy;
 
   Dog({
     required this.id,
     required this.name,
     required this.breed,
-    required this.description,
     required this.gender,
-    required this.imageUrl,
     required this.size,
-    required this.medicalRecords,
+    required this.description,
+    required this.imageUrl,
     this.status = 'available',
+    this.medicalRecords = const {}, // Default to empty map
     this.adoptedBy,
   });
 
-  factory Dog.fromFirestore(Map<String, dynamic> data, String id) {
+  factory Dog.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return Dog(
-      id: id,
+      id: doc.id,
       name: data['name'] ?? '',
       breed: data['breed'] ?? '',
-      description: data['description'] ?? '',
       gender: data['gender'] ?? '',
+      size: data['size'] ?? '',
+      description: data['description'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
-      size: data['size'] ?? 'Medium',
-      medicalRecords: Map<String, bool>.from(data['medicalRecords'] ?? {
-        'Dewormed': false,
-        'Spayed/Neutered': false,
-        'Vaccinated': false,
-      }),
-      status: data['status'] ?? 'available',
-      adoptedBy: data['adoptedBy'] as Map<String, dynamic>?,
+      status: data['status'] ?? 'available', // Default to available if missing
+      medicalRecords: Map<String, bool>.from(data['medicalRecords'] ?? {}),
+      adoptedBy: data['adoptedBy']?['userEmail'] as String?,
     );
   }
 }

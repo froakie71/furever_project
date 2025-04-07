@@ -6,6 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'bloc/event_bloc.dart';
 import 'bloc/event_event.dart';
 import 'bloc/event_state.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data';
 
 class AddEventScreen extends StatefulWidget {
   const AddEventScreen({super.key});
@@ -23,6 +25,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _imageUrl = '';
   File? _imageFile;
+  Uint8List? _webImage; // Add this for web support
   bool _isUploading = false;
 
   Future<void> _selectDate(BuildContext context) async {
@@ -59,22 +62,40 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
     if (pickedFile != null) {
       setState(() {
-        _imageFile = File(pickedFile.path);
         _isUploading = true;
       });
 
-      // Upload to Firebase Storage
       try {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('event_images')
-            .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+        if (kIsWeb) {
+          // Handle web platform
+          _webImage = await pickedFile.readAsBytes();
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('event_images')
+              .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
 
-        await storageRef.putFile(_imageFile!);
-        final downloadUrl = await storageRef.getDownloadURL();
+          // Upload bytes for web
+          await storageRef.putData(_webImage!);
+          final downloadUrl = await storageRef.getDownloadURL();
+          setState(() {
+            _imageUrl = downloadUrl;
+          });
+        } else {
+          // Handle mobile platforms
+          _imageFile = File(pickedFile.path);
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('event_images')
+              .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
 
+          // Upload file for mobile
+          await storageRef.putFile(_imageFile!);
+          final downloadUrl = await storageRef.getDownloadURL();
+          setState(() {
+            _imageUrl = downloadUrl;
+          });
+        }
         setState(() {
-          _imageUrl = downloadUrl;
           _isUploading = false;
         });
       } catch (e) {
@@ -86,6 +107,53 @@ class _AddEventScreenState extends State<AddEventScreen> {
         ).showSnackBar(SnackBar(content: Text('Error uploading image: $e')));
       }
     }
+  }
+
+  Widget _buildImagePreview() {
+    if (_isUploading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_imageUrl.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.network(
+          _imageUrl,
+          fit: BoxFit.cover,
+          width: 200,
+          height: 200,
+        ),
+      );
+    }
+
+    if (kIsWeb && _webImage != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.memory(
+          _webImage!,
+          fit: BoxFit.cover,
+          width: 200,
+          height: 200,
+        ),
+      );
+    }
+
+    if (!kIsWeb && _imageFile != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.file(
+          _imageFile!,
+          fit: BoxFit.cover,
+          width: 200,
+          height: 200,
+        ),
+      );
+    }
+
+    return IconButton(
+      icon: const Icon(Icons.add_photo_alternate, size: 50),
+      onPressed: _pickImage,
+    );
   }
 
   Future<void> _saveEvent() async {
@@ -190,32 +258,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child:
-                            _isUploading
-                                ? const Center(
-                                  child: CircularProgressIndicator(),
-                                )
-                                : _imageFile != null || _imageUrl.isNotEmpty
-                                ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child:
-                                      _imageFile != null
-                                          ? Image.file(
-                                            _imageFile!,
-                                            fit: BoxFit.cover,
-                                          )
-                                          : Image.network(
-                                            _imageUrl,
-                                            fit: BoxFit.cover,
-                                          ),
-                                )
-                                : IconButton(
-                                  icon: const Icon(
-                                    Icons.add_photo_alternate,
-                                    size: 50,
-                                  ),
-                                  onPressed: _pickImage,
-                                ),
+                        child: _buildImagePreview(),
                       ),
                       const SizedBox(height: 8),
                       TextButton(

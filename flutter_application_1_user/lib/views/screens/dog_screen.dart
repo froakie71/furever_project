@@ -77,7 +77,14 @@ class DogScreen extends StatelessWidget {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('dogs').snapshots(),
+              stream:
+                  FirebaseFirestore.instance
+                      .collection('dogs')
+                      .orderBy(
+                        'createdAt',
+                        descending: true,
+                      ) // Add sorting by creation date
+                      .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
@@ -96,14 +103,28 @@ class DogScreen extends StatelessWidget {
                 final dogs =
                     snapshot.data!.docs.map((doc) {
                       final data = doc.data() as Map<String, dynamic>;
-                      return Dog.fromFirestore(data, doc.id);
+                      // If status is missing, treat as available
+                      if (!data.containsKey('status')) {
+                        data['status'] = 'available';
+                      }
+                      data['id'] = doc.id;
+                      return Dog.fromFirestore(doc);
                     }).toList();
+
+                // Filter available dogs after getting the data
+                final availableDogs =
+                    dogs
+                        .where(
+                          (dog) =>
+                              dog.status == 'available' || dog.status.isEmpty,
+                        )
+                        .toList();
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: dogs.length,
+                  itemCount: availableDogs.length,
                   itemBuilder: (context, index) {
-                    final dog = dogs[index];
+                    final dog = availableDogs[index];
                     return _buildDogCard(context, dog);
                   },
                 );
@@ -159,7 +180,7 @@ class DogScreen extends StatelessWidget {
                       child: Text(
                         _getStatusBadgeText(
                           dog.status,
-                          dog.adoptedBy?['userEmail'],
+                          dog.adoptedBy, // Pass the adoptedBy value directly
                         ),
                         style: const TextStyle(
                           color: Colors.white,
@@ -435,7 +456,7 @@ class DogScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                _buildMedicalRecords(dog.medicalRecords),
+                _buildMedicalRecords(dog.medicalRecords as Map<String, bool>),
                 const SizedBox(height: 24),
                 const Text(
                   'Description',
@@ -488,7 +509,7 @@ class DogScreen extends StatelessWidget {
   String _getStatusBadgeText(String status, String? userEmail) {
     switch (status) {
       case 'adopted':
-        return 'Adopted by ${userEmail ?? 'Someone'}';
+        return 'Adopted${userEmail != null ? ' by $userEmail' : ''}';
       case 'pending':
         return 'Ongoing Adoption Process';
       default:
