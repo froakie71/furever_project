@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/firebase_options.dart';
+import 'package:flutter_application_1/views/screens/Donations/bloc/donator_bloc.dart';
+import 'package:flutter_application_1/views/screens/Donations/bloc/donator_event.dart';
 import 'package:flutter_application_1/views/screens/Merch/bloc/merch_event.dart';
 import 'package:flutter_application_1/views/screens/ProcessAdoption/bloc/adoption_bloc.dart';
 import 'package:flutter_application_1/views/screens/ProcessAdoption/bloc/adoption_event.dart';
@@ -14,6 +16,7 @@ import 'views/screens/Dogs/bloc/dog_bloc.dart';
 import 'views/screens/authentication/login/admin_signin_view.dart';
 import 'views/screens/Events/bloc/event_bloc.dart';
 import 'views/screens/Merch/bloc/merch_bloc.dart';
+
 // main.dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +50,9 @@ void main() async {
         ),
         BlocProvider<AdoptionBloc>(
           create: (context) => AdoptionBloc()..add(LoadPendingAdoptions()),
+        ),
+        BlocProvider<DonatorBloc>(
+          create: (context) => DonatorBloc()..add(LoadDonators()),
         ),
       ],
       child: const MyApp(),

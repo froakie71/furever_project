@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/views/screens/Donations/donation_details_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'bloc/donator_bloc.dart';
 import 'bloc/donator_event.dart';
 import 'bloc/donator_state.dart';
@@ -28,8 +30,9 @@ class TopDonatorsScreen extends StatelessWidget {
                     labelText: 'Name',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'Please enter a name' : null,
+                  validator:
+                      (value) =>
+                          value?.isEmpty ?? true ? 'Please enter a name' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -40,8 +43,11 @@ class TopDonatorsScreen extends StatelessWidget {
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
-                  validator: (value) =>
-                      value?.isEmpty ?? true ? 'Please enter an amount' : null,
+                  validator:
+                      (value) =>
+                          value?.isEmpty ?? true
+                              ? 'Please enter an amount'
+                              : null,
                 ),
               ],
             ),
@@ -55,11 +61,11 @@ class TopDonatorsScreen extends StatelessWidget {
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   context.read<DonatorBloc>().add(
-                        AddDonator(
-                          name: nameController.text,
-                          amount: amountController.text,
-                        ),
-                      );
+                    AddDonator(
+                      name: nameController.text,
+                      amount: amountController.text,
+                    ),
+                  );
                   Navigator.pop(context);
                 }
               },
@@ -73,94 +79,116 @@ class TopDonatorsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => DonatorBloc(),
-      child: BlocListener<DonatorBloc, DonatorState>(
-        listener: (context, state) {
-          if (state is DonatorSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Donator added successfully')),
-            );
-          } else if (state is DonatorError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        child: Scaffold(
+    return BlocBuilder<DonatorBloc, DonatorState>(
+      builder: (context, state) {
+        return Scaffold(
           appBar: AppBar(
-            title: const Text('Top Donators'),
+            title: const Text('Donations Summary'),
+            backgroundColor: const Color(0xFF32649B),
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ListView.builder(
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                final donators = [
-                  {
-                    'name': 'Maria Santos',
-                    'amount': '₱50,000',
-                    'icon': Icons.star
-                  },
-                  {
-                    'name': 'John Smith',
-                    'amount': '₱35,000',
-                    'icon': Icons.person_outline
-                  },
-                  {
-                    'name': 'Anna Garcia',
-                    'amount': '₱25,000',
-                    'icon': Icons.volunteer_activism
-                  },
-                  {
-                    'name': 'Luis Cruz',
-                    'amount': '₱20,000',
-                    'icon': Icons.thumb_up
-                  },
-                  {
-                    'name': 'Sarah Lee',
-                    'amount': '₱18,000',
-                    'icon': Icons.favorite
-                  },
-                ];
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFFFE0B2),
-                      child: Text(
-                        '${index + 1}',
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.bold,
+          body: Column(
+            children: [
+              // Total all donations card
+              if (state is DonatorSuccess)
+                Card(
+                  margin: const EdgeInsets.all(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Total All Donations',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ),
-                    title: Text(
-                      donators[index]['name'].toString(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      donators[index]['amount'].toString(),
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    trailing: Icon(
-                      donators[index]['icon'] as IconData,
-                      color: Colors.orange,
+                        const SizedBox(height: 8),
+                        Text(
+                          '₱${NumberFormat('#,##0.00').format(state.userDonations.fold(0.0, (sum, user) => sum + user.totalAmount))}',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF32649B),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+
+              // Users list
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    if (state is DonatorLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (state is DonatorError) {
+                      return Center(child: Text(state.message));
+                    }
+                    if (state is DonatorSuccess) {
+                      return ListView.builder(
+                        itemCount: state.userDonations.length,
+                        itemBuilder: (context, index) {
+                          final userDonation = state.userDonations[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: const Color(0xFFFFE0B2),
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                userDonation.userEmail,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                '${userDonation.donations.length} donations',
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              trailing: Text(
+                                '₱${NumberFormat('#,##0.00').format(userDonation.totalAmount)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF32649B),
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => DonationDetailsScreen(
+                                          userDonations: userDonation,
+                                        ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    return const Center(child: Text('No donations yet'));
+                  },
+                ),
+              ),
+            ],
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _showAddDonatorDialog(context),
-            backgroundColor: Colors.orange,
-            child: const Icon(Icons.add),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

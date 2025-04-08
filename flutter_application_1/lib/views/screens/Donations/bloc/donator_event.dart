@@ -1,5 +1,7 @@
 abstract class DonatorEvent {}
 
+class LoadDonators extends DonatorEvent {}
+
 class AddDonator extends DonatorEvent {
   final String name;
   final String amount;

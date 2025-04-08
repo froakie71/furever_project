@@ -59,75 +59,88 @@ class AdminHomeView extends StatelessWidget {
 
   Widget _buildStatCards() {
     return SizedBox(
-      height: 220, // Reduced height
-      child: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').snapshots(),
-        builder: (context, userSnapshot) {
-          return StreamBuilder<QuerySnapshot>(
+      height: 220,
+      child: GridView.count(
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 3, // Changed to 3 columns
+        childAspectRatio: 1.5,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        children: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('users').snapshots(),
+            builder:
+                (context, snapshot) => _buildSingleStatCard(
+                  'Total Users',
+                  snapshot.hasData ? '${snapshot.data!.docs.length}' : '0',
+                  Icons.people,
+                  Colors.teal,
+                ),
+          ),
+          StreamBuilder<QuerySnapshot>(
+            stream:
+                FirebaseFirestore.instance
+                    .collection('adoptions')
+                    .where('status', isEqualTo: 'accepted')
+                    .snapshots(),
+            builder:
+                (context, snapshot) => _buildSingleStatCard(
+                  'Adoptions',
+                  snapshot.hasData ? '${snapshot.data!.docs.length}' : '0',
+                  Icons.pets,
+                  Colors.green,
+                ),
+          ),
+          StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection('dogs').snapshots(),
-            builder: (context, dogsSnapshot) {
-              return GridView.count(
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                childAspectRatio: 1.8, // Increased for better visibility
-                mainAxisSpacing: 8, // Reduced spacing
-                crossAxisSpacing: 8, // Reduced spacing
-                children: [
-                  // First row
-                  _buildSingleStatCard(
-                    'Total Clients',
-                    userSnapshot.hasData
-                        ? '${userSnapshot.data!.docs.length}'
-                        : '0',
-                    Icons.people,
-                    Colors.teal,
-                  ),
-                  _buildSingleStatCard(
-                    'Available Dogs',
-                    dogsSnapshot.hasData
-                        ? '${dogsSnapshot.data!.docs.length}'
-                        : '0',
-                    Icons.pets,
-                    Colors.blue,
-                  ),
-                  // Second row
-                  StreamBuilder<QuerySnapshot>(
-                    stream:
-                        FirebaseFirestore.instance
-                            .collection('events')
-                            .snapshots(),
-                    builder: (context, eventsSnapshot) {
-                      return _buildSingleStatCard(
-                        'Events',
-                        eventsSnapshot.hasData
-                            ? '${eventsSnapshot.data!.docs.length}'
-                            : '0',
-                        Icons.event,
-                        Colors.orange,
-                      );
-                    },
-                  ),
-                  StreamBuilder<QuerySnapshot>(
-                    stream:
-                        FirebaseFirestore.instance
-                            .collection('merch')
-                            .snapshots(),
-                    builder: (context, productsSnapshot) {
-                      return _buildSingleStatCard(
-                        'Products',
-                        productsSnapshot.hasData
-                            ? '${productsSnapshot.data!.docs.length}'
-                            : '0',
-                        Icons.shopping_bag,
-                        Colors.purple,
-                      );
-                    },
-                  ),
-                ],
+            builder:
+                (context, snapshot) => _buildSingleStatCard(
+                  'Available Dogs',
+                  snapshot.hasData ? '${snapshot.data!.docs.length}' : '0',
+                  Icons.pets,
+                  Colors.blue,
+                ),
+          ),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('events').snapshots(),
+            builder:
+                (context, snapshot) => _buildSingleStatCard(
+                  'Events',
+                  snapshot.hasData ? '${snapshot.data!.docs.length}' : '0',
+                  Icons.event,
+                  Colors.orange,
+                ),
+          ),
+          StreamBuilder<QuerySnapshot>(
+            stream:
+                FirebaseFirestore.instance.collection('donations').snapshots(),
+            builder: (context, snapshot) {
+              double total = 0;
+              if (snapshot.hasData) {
+                for (var doc in snapshot.data!.docs) {
+                  total +=
+                      (doc.data() as Map<String, dynamic>)['amount'] as double;
+                }
+              }
+              return _buildSingleStatCard(
+                'Donations',
+                '₱${total.toStringAsFixed(0)}',
+                Icons.volunteer_activism,
+                Colors.purple,
               );
             },
-          );
-        },
+          ),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('merch').snapshots(),
+            builder:
+                (context, snapshot) => _buildSingleStatCard(
+                  'Products',
+                  snapshot.hasData ? '${snapshot.data!.docs.length}' : '0',
+                  Icons.shopping_bag,
+                  Colors.red,
+                ),
+          ),
+        ],
       ),
     );
   }
@@ -170,78 +183,65 @@ class AdminHomeView extends StatelessWidget {
   }
 
   Widget _buildAdoptionChart() {
-    return SizedBox(
-      height: 280,
-      child: Card(
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Monthly Adoptions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: BarChart(
-                  BarChartData(
-                    // Implement bar chart data for adoptions
-                    // ...
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEventParticipationChart() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('events').snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('adoptions')
+              .where('status', isEqualTo: 'accepted')
+              .snapshots(), // Removed orderBy to avoid index requirement
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox(
+            height: 280,
+          ); // Return empty space instead of loading indicator
         }
 
-        final events = snapshot.data!.docs;
-        final List<PieChartSectionData> sections = [];
+        final adoptions = snapshot.data!.docs;
+        final Map<String, int> monthlyAdoptions = {};
 
-        double totalParticipants = 0;
-        for (var event in events) {
-          final eventData = event.data() as Map<String, dynamic>;
-          final eventName = eventData['eventName'] ?? 'Unnamed Event';
-          final participants = eventData['participants']?.length ?? 0;
-          totalParticipants += participants;
+        // Group adoptions by month
+        for (var adoption in adoptions) {
+          final data = adoption.data() as Map<String, dynamic>;
+          if (data['submittedAt'] != null) {
+            final date = (data['submittedAt'] as Timestamp).toDate();
+            final monthKey = '${date.year}-${date.month}';
+            monthlyAdoptions[monthKey] = (monthlyAdoptions[monthKey] ?? 0) + 1;
+          }
+        }
 
-          if (participants > 0) {
-            sections.add(
-              PieChartSectionData(
-                value: participants.toDouble(),
-                title: '$eventName\n($participants)',
-                color:
-                    Colors.primaries[sections.length % Colors.primaries.length],
-                radius: 80,
-                titleStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                showTitle: true,
-                badgeWidget: Text(
-                  '$participants',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+        // If no data, return empty container with same height
+        if (monthlyAdoptions.isEmpty) {
+          return SizedBox(
+            height: 280,
+            child: Card(
+              elevation: 4,
+              child: Center(
+                child: Text(
+                  'No adoption data available',
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
-            );
-          }
+            ),
+          );
+        }
+
+        final sortedMonths = monthlyAdoptions.keys.toList()..sort();
+        final List<BarChartGroupData> barGroups = [];
+
+        for (int i = 0; i < sortedMonths.length; i++) {
+          barGroups.add(
+            BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: monthlyAdoptions[sortedMonths[i]]!.toDouble(),
+                  color: Colors.green,
+                  width: 16,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
+            ),
+          );
         }
 
         return SizedBox(
@@ -253,30 +253,204 @@ class AdminHomeView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Event Participation',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Monthly Adoptions',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Total: ${adoptions.length}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child:
-                        sections.isEmpty
-                            ? const Center(
-                              child: Text('No event participation data'),
-                            )
-                            : PieChart(
-                              PieChartData(
-                                sectionsSpace: 2,
-                                centerSpaceRadius: 0,
-                                sections: sections,
-                                pieTouchData: PieTouchData(enabled: true),
-                              ),
+                    child: BarChart(
+                      BarChartData(
+                        alignment: BarChartAlignment.spaceAround,
+                        maxY:
+                            monthlyAdoptions.values
+                                .reduce((a, b) => a > b ? a : b)
+                                .toDouble() *
+                            1.2,
+                        titlesData: FlTitlesData(
+                          show: true,
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, meta) {
+                                if (value.toInt() >= 0 &&
+                                    value.toInt() < sortedMonths.length) {
+                                  final parts = sortedMonths[value.toInt()]
+                                      .split('-');
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      '${parts[1]}/${parts[0].substring(2)}',
+                                      style: const TextStyle(fontSize: 11),
+                                    ),
+                                  );
+                                }
+                                return const Text('');
+                              },
                             ),
+                          ),
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 30,
+                              getTitlesWidget: (value, meta) {
+                                return Text(
+                                  value.toInt().toString(),
+                                  style: const TextStyle(fontSize: 11),
+                                );
+                              },
+                            ),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                        ),
+                        borderData: FlBorderData(show: false),
+                        gridData: FlGridData(show: false),
+                        barGroups: barGroups,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEventParticipationChart() {
+    return StreamBuilder<QuerySnapshot>(
+      stream:
+          FirebaseFirestore.instance
+              .collection('event_registrations') // Changed from 'events'
+              .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final registrations = snapshot.data!.docs;
+        final Map<String, int> eventParticipants = {};
+
+        // Count participants per event
+        for (var registration in registrations) {
+          final data = registration.data() as Map<String, dynamic>;
+          final eventId = data['eventId'] as String;
+          eventParticipants[eventId] = (eventParticipants[eventId] ?? 0) + 1;
+        }
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('events').snapshots(),
+          builder: (context, eventsSnapshot) {
+            if (!eventsSnapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final events = eventsSnapshot.data!.docs;
+            final List<PieChartSectionData> sections = [];
+            double totalParticipants = 0;
+
+            for (var event in events) {
+              final eventData = event.data() as Map<String, dynamic>;
+              final eventId = event.id;
+              final eventName = eventData['title'] ?? 'Unnamed Event';
+              final participants = eventParticipants[eventId] ?? 0;
+              totalParticipants += participants;
+
+              if (participants > 0) {
+                sections.add(
+                  PieChartSectionData(
+                    value: participants.toDouble(),
+                    title: '$eventName\n($participants)',
+                    color:
+                        Colors.primaries[sections.length %
+                            Colors.primaries.length],
+                    radius: 80,
+                    titleStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              }
+            }
+
+            return SizedBox(
+              height: 280,
+              child: Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Event Participation',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Total: ${totalParticipants.toInt()}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Expanded(
+                        child:
+                            sections.isEmpty
+                                ? const Center(
+                                  child: Text(
+                                    'No event participation data',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                                : PieChart(
+                                  PieChartData(
+                                    sectionsSpace: 2,
+                                    centerSpaceRadius: 40,
+                                    sections: sections,
+                                    pieTouchData: PieTouchData(enabled: true),
+                                  ),
+                                ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );

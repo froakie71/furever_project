@@ -155,7 +155,9 @@ class EventScreen extends StatelessWidget {
                                     MaterialPageRoute(
                                       builder:
                                           (context) => EventParticipantsScreen(
-                                            eventId: events[index].id,
+                                            eventId:
+                                                events[index]
+                                                    .id, // This is the correct way to get document ID
                                             eventTitle:
                                                 event['title'] ?? 'Event',
                                           ),
