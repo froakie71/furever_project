@@ -1,4 +1,3 @@
-import 'package:flutter_application_1/models/donator.dart';
 import 'package:flutter_application_1/models/user_donations.dart';
 
 abstract class DonatorState {}

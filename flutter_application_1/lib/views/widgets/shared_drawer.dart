@@ -11,7 +11,6 @@ import '../screens/Merch/merch_screen.dart';
 import '../screens/authentication/bloc/auth_bloc.dart';
 import '../screens/authentication/bloc/auth_event.dart';
 import '../screens/authentication/login/admin_signin_view.dart';
-import '../screens/dashboard/dashboard.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../screens/ProcessAdoption/process_adoption_screen.dart';
 
@@ -26,11 +25,10 @@ class SharedDrawer extends StatelessWidget {
         children: [
           UserAccountsDrawerHeader(
             accountName: StreamBuilder<DocumentSnapshot>(
-              stream:
-                  FirebaseFirestore.instance
-                      .collection('admins')
-                      .doc(FirebaseAuth.instance.currentUser?.uid)
-                      .snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('admins')
+                  .doc(FirebaseAuth.instance.currentUser?.uid)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData && snapshot.data?.exists == true) {
                   final adminData =

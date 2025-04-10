@@ -456,7 +456,7 @@ class DogScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                _buildMedicalRecords(dog.medicalRecords as Map<String, bool>),
+                _buildMedicalRecords(dog.medicalRecords),
                 const SizedBox(height: 24),
                 const Text(
                   'Description',

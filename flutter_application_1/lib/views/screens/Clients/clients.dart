@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class ClientsView extends StatelessWidget {
-  const ClientsView({Key? key}) : super(key: key);
+  const ClientsView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -71,12 +71,9 @@ class ClientsView extends StatelessWidget {
                     ],
                   ),
                   isThreeLine: true,
-                  trailing: IconButton(
-                    icon: const Icon(Icons.info_outline),
-                    onPressed: () {
-                      _showUserDetails(context, userData);
-                    },
-                  ),
+                  onTap: () {
+                    _showUserDetails(context, userData);
+                  },
                 ),
               );
             },
@@ -96,15 +93,40 @@ class ClientsView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children:
-                    userData.entries.map((entry) {
-                      if (entry.value is Timestamp) {
-                        return Text(
-                          '${entry.key}: ${DateFormat('MMM d, yyyy HH:mm').format(entry.value.toDate())}',
-                        );
-                      }
-                      return Text('${entry.key}: ${entry.value}');
-                    }).toList(),
+                children: [
+                  if (userData['profileImage'] != null &&
+                      userData['profileImage'].toString().isNotEmpty)
+                    Center(
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: NetworkImage(userData['profileImage']),
+                          ),
+                        ),
+                      ),
+                    ),
+                  _buildDetailRow('Full Name', userData['fullName'] ?? 'N/A'),
+                  _buildDetailRow('Email', userData['email'] ?? 'N/A'),
+                  _buildDetailRow('Age', userData['age']?.toString() ?? 'N/A'),
+                  _buildDetailRow(
+                    'Phone',
+                    userData['phone']?.toString() ?? 'N/A',
+                  ),
+                  _buildDetailRow('Gender', userData['gender'] ?? 'N/A'),
+                  _buildDetailRow('Address', userData['address'] ?? 'N/A'),
+                  if (userData['createdAt'] != null)
+                    _buildDetailRow(
+                      'Joined',
+                      DateFormat(
+                        'MMM d, yyyy HH:mm',
+                      ).format(userData['createdAt'].toDate()),
+                    ),
+                ],
               ),
             ),
             actions: [
@@ -114,6 +136,28 @@ class ClientsView extends StatelessWidget {
               ),
             ],
           ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(value, style: const TextStyle(fontSize: 16)),
+          const Divider(),
+        ],
+      ),
     );
   }
 }

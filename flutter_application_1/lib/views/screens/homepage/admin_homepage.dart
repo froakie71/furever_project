@@ -18,7 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class AdminHomeView extends StatelessWidget {
-  const AdminHomeView({Key? key}) : super(key: key);
+  const AdminHomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -606,7 +606,7 @@ class AdminHomeView extends StatelessWidget {
         }
 
         // Fixed height container
-        return Container(
+        return SizedBox(
           height: 280, // Reduced from 300
           child: Card(
             elevation: 4,

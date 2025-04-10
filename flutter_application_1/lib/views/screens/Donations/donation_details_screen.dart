@@ -5,8 +5,7 @@ import '../../../models/user_donations.dart';
 class DonationDetailsScreen extends StatelessWidget {
   final UserDonations userDonations;
 
-  const DonationDetailsScreen({Key? key, required this.userDonations})
-    : super(key: key);
+  const DonationDetailsScreen({super.key, required this.userDonations});
 
   @override
   Widget build(BuildContext context) {

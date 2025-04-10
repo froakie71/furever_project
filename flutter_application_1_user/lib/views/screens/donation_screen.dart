@@ -7,7 +7,6 @@ import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
 import 'package:intl/intl.dart';
-import 'medical_services_screen.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';

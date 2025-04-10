@@ -1,7 +1,8 @@
+// ignore_for_file: unused_element
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math' as math;
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});

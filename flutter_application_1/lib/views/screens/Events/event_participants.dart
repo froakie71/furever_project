@@ -7,10 +7,10 @@ class EventParticipantsScreen extends StatelessWidget {
   final String eventTitle;
 
   const EventParticipantsScreen({
-    Key? key,
+    super.key,
     required this.eventId,
     required this.eventTitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

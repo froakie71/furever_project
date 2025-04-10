@@ -6,7 +6,6 @@ import 'package:flutter_application_1_user/views/screens/donation_screen.dart';
 import 'package:flutter_application_1_user/views/screens/event_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
-import 'medical_services_screen.dart';
 
 class AdoptedDogsScreen extends StatefulWidget {
   const AdoptedDogsScreen({super.key});
@@ -29,61 +28,60 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
         .where('status', isEqualTo: 'accepted')
         .snapshots()
         .asyncMap((adoptionsSnapshot) async {
-          final adoptedDogs = <Map<String, dynamic>>[];
+      final adoptedDogs = <Map<String, dynamic>>[];
 
-          for (var adoption in adoptionsSnapshot.docs) {
-            try {
-              final adoptionData = adoption.data();
-              if (adoptionData == null) {
-                continue;
-              }
-
-              // Get dog details
-              final dogDoc =
-                  await FirebaseFirestore.instance
-                      .collection('dogs')
-                      .doc(adoptionData['dogId'])
-                      .get();
-
-              if (!dogDoc.exists || dogDoc.data() == null) {
-                continue;
-              }
-
-              final dogData = dogDoc.data()!;
-
-              adoptedDogs.add({
-                'id': adoption.id,
-                'dogId': adoptionData['dogId'],
-                'dogName': adoptionData['dogName'] ?? 'Unknown',
-                'imageUrl': adoptionData['dogImageUrl'] ?? '',
-                'breed': dogData['breed'] ?? 'Unknown',
-                'adoptionDate': adoptionData['submittedAt'] as Timestamp,
-                'vetVisits': dogData['vetVisits'] ?? 0,
-                'userEmail': adoptionData['userEmail'] ?? 'Unknown',
-                'status': adoptionData['status'] ?? 'accepted',
-              });
-            } catch (e) {
-              debugPrint('Error processing adoption document: $e');
-              continue;
-            }
+      for (var adoption in adoptionsSnapshot.docs) {
+        try {
+          final adoptionData = adoption.data();
+          if (adoptionData == null) {
+            continue;
           }
 
-          if (_sortByNewest) {
-            adoptedDogs.sort(
-              (a, b) => (b['adoptionDate'] as Timestamp).compareTo(
-                a['adoptionDate'] as Timestamp,
-              ),
-            );
-          } else {
-            adoptedDogs.sort(
-              (a, b) => (a['adoptionDate'] as Timestamp).compareTo(
-                b['adoptionDate'] as Timestamp,
-              ),
-            );
+          // Get dog details
+          final dogDoc = await FirebaseFirestore.instance
+              .collection('dogs')
+              .doc(adoptionData['dogId'])
+              .get();
+
+          if (!dogDoc.exists || dogDoc.data() == null) {
+            continue;
           }
 
-          return adoptedDogs;
-        });
+          final dogData = dogDoc.data()!;
+
+          adoptedDogs.add({
+            'id': adoption.id,
+            'dogId': adoptionData['dogId'],
+            'dogName': adoptionData['dogName'] ?? 'Unknown',
+            'imageUrl': adoptionData['dogImageUrl'] ?? '',
+            'breed': dogData['breed'] ?? 'Unknown',
+            'adoptionDate': adoptionData['submittedAt'] as Timestamp,
+            'vetVisits': dogData['vetVisits'] ?? 0,
+            'userEmail': adoptionData['userEmail'] ?? 'Unknown',
+            'status': adoptionData['status'] ?? 'accepted',
+          });
+        } catch (e) {
+          debugPrint('Error processing adoption document: $e');
+          continue;
+        }
+      }
+
+      if (_sortByNewest) {
+        adoptedDogs.sort(
+          (a, b) => (b['adoptionDate'] as Timestamp).compareTo(
+            a['adoptionDate'] as Timestamp,
+          ),
+        );
+      } else {
+        adoptedDogs.sort(
+          (a, b) => (a['adoptionDate'] as Timestamp).compareTo(
+            b['adoptionDate'] as Timestamp,
+          ),
+        );
+      }
+
+      return adoptedDogs;
+    });
   }
 
   @override
@@ -134,17 +132,16 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
                     onSelected: (bool value) {
                       setState(() => _sortByNewest = value);
                     },
-                    itemBuilder:
-                        (context) => [
-                          const PopupMenuItem(
-                            value: true,
-                            child: Text('Sort by Newest'),
-                          ),
-                          const PopupMenuItem(
-                            value: false,
-                            child: Text('Sort by Oldest'),
-                          ),
-                        ],
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: true,
+                        child: Text('Sort by Newest'),
+                      ),
+                      const PopupMenuItem(
+                        value: false,
+                        child: Text('Sort by Oldest'),
+                      ),
+                    ],
                   ),
                 ],
               ),

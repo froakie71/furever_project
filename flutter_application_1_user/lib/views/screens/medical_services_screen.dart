@@ -6,34 +6,32 @@ import 'package:flutter_application_1_user/views/screens/event_screen.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 
-
 class MedicalServicesScreen extends StatelessWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  MedicalServicesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar:AppBar(
+      appBar: AppBar(
         backgroundColor: const Color(0xFF32649B),
         automaticallyImplyLeading: false,
         title: InkWell(
           onTap: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => HomeScreen()),
             );
           },
-          child: Image.asset(
-            'assets/images/Furever_logo.png',
-            height: 80,
-          ),
+          child: Image.asset('assets/images/Furever_logo.png', height: 80),
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0), // Adjust the value as needed
+            padding: const EdgeInsets.only(
+              right: 16.0,
+            ), // Adjust the value as needed
             child: IconButton(
               icon: const Icon(Icons.menu, color: Colors.white),
               onPressed: () {
@@ -50,25 +48,19 @@ class MedicalServicesScreen extends StatelessWidget {
             const UserAccountsDrawerHeader(
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.person,
-                  size: 50,
-                  color: Colors.grey,
-                ),
+                child: Icon(Icons.person, size: 50, color: Colors.grey),
               ),
               accountName: Text('John Doe'),
               accountEmail: Text('johndoe@example.com'),
             ),
-             ListTile(
+            ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Home'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => HomeScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => HomeScreen()),
                 );
               },
             ),
@@ -79,9 +71,7 @@ class MedicalServicesScreen extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => EventScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => EventScreen()),
                 );
               },
             ),
@@ -92,9 +82,7 @@ class MedicalServicesScreen extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => DogScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => DogScreen()),
                 );
               },
             ),
@@ -144,9 +132,7 @@ class MedicalServicesScreen extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const MerchScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const MerchScreen()),
                 );
               },
             ),
@@ -176,10 +162,7 @@ class MedicalServicesScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         backgroundColor: Colors.red.shade100,
-                        child: const Icon(
-                          Icons.emergency,
-                          color: Colors.red,
-                        ),
+                        child: const Icon(Icons.emergency, color: Colors.red),
                       ),
                       const SizedBox(width: 16),
                       const Expanded(
@@ -209,92 +192,87 @@ class MedicalServicesScreen extends StatelessWidget {
           // Available Services Section
           const Text(
             'Frequently Asked Questions',
-            style: TextStyle(
-              fontSize: 23,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-        ListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            ExpansionTile(
-              title: const Text(
-                'How often should I feed my dog?',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Adult dogs should typically be fed twice a day, while puppies need 3-4 meals daily. The amount depends on size, age, and activity level. Consult your vet for specific recommendations.',
-                  ),
+          ListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              ExpansionTile(
+                title: const Text(
+                  'How often should I feed my dog?',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-              ],
-            ),
-            ExpansionTile(
-              title: const Text(
-                'How often should my dog visit the vet?',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Adult dogs should have annual check-ups, while puppies need multiple visits for vaccinations. Senior dogs (7+ years) should visit twice yearly.',
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Adult dogs should typically be fed twice a day, while puppies need 3-4 meals daily. The amount depends on size, age, and activity level. Consult your vet for specific recommendations.',
+                    ),
                   ),
-                ),
-              ],
-            ),
-            ExpansionTile(
-              title: const Text(
-                'What vaccinations does my dog need?',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                ],
               ),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Core vaccinations include: Rabies, Distemper, Parvovirus, and Hepatitis. Additional vaccines may be recommended based on lifestyle and location.',
-                  ),
+              ExpansionTile(
+                title: const Text(
+                  'How often should my dog visit the vet?',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-              ],
-            ),
-            ExpansionTile(
-              title: const Text(
-                'How often should I groom my dog?',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Adult dogs should have annual check-ups, while puppies need multiple visits for vaccinations. Senior dogs (7+ years) should visit twice yearly.',
+                    ),
+                  ),
+                ],
               ),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Brush your dog 1-2 times weekly, bathe every 4-8 weeks depending on coat type. Nail trimming needed every 2-4 weeks, and dental care should be done daily.',
-                  ),
+              ExpansionTile(
+                title: const Text(
+                  'What vaccinations does my dog need?',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-              ],
-            ),
-            ExpansionTile(
-              title: const Text(
-                'How much exercise does my dog need?',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Core vaccinations include: Rabies, Distemper, Parvovirus, and Hepatitis. Additional vaccines may be recommended based on lifestyle and location.',
+                    ),
+                  ),
+                ],
               ),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Most dogs need 30-60 minutes of exercise daily. Working and high-energy breeds may need more. Exercise needs vary by age, breed, and health status.',
-                  ),
+              ExpansionTile(
+                title: const Text(
+                  'How often should I groom my dog?',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-              ],
-            ),
-          ],
-        ),  
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Brush your dog 1-2 times weekly, bathe every 4-8 weeks depending on coat type. Nail trimming needed every 2-4 weeks, and dental care should be done daily.',
+                    ),
+                  ),
+                ],
+              ),
+              ExpansionTile(
+                title: const Text(
+                  'How much exercise does my dog need?',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Most dogs need 30-60 minutes of exercise daily. Working and high-energy breeds may need more. Exercise needs vary by age, breed, and health status.',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
-
-  
 }

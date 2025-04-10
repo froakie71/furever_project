@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'donator_event.dart';
 import 'donator_state.dart';
-import '../../../../models/donator.dart';
 
 class DonatorBloc extends Bloc<DonatorEvent, DonatorState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -12,21 +11,19 @@ class DonatorBloc extends Bloc<DonatorEvent, DonatorState> {
     on<LoadDonators>((event, emit) async {
       emit(DonatorLoading());
       try {
-        final QuerySnapshot snapshot =
-            await _firestore
-                .collection('donations')
-                .orderBy('timestamp', descending: true)
-                .get();
+        final QuerySnapshot snapshot = await _firestore
+            .collection('donations')
+            .orderBy('timestamp', descending: true)
+            .get();
 
         // Convert to DonationHistory objects
-        final List<DonationHistory> allDonations =
-            snapshot.docs
-                .map(
-                  (doc) => DonationHistory.fromFirestore(
-                    doc.data() as Map<String, dynamic>,
-                  ),
-                )
-                .toList();
+        final List<DonationHistory> allDonations = snapshot.docs
+            .map(
+              (doc) => DonationHistory.fromFirestore(
+                doc.data() as Map<String, dynamic>,
+              ),
+            )
+            .toList();
 
         // Group by user email
         final Map<String, List<DonationHistory>> groupedDonations = {};
@@ -38,10 +35,9 @@ class DonatorBloc extends Bloc<DonatorEvent, DonatorState> {
         }
 
         // Convert to UserDonations objects
-        final List<UserDonations> userDonations =
-            groupedDonations.values
-                .map((donations) => UserDonations.fromDonations(donations))
-                .toList();
+        final List<UserDonations> userDonations = groupedDonations.values
+            .map((donations) => UserDonations.fromDonations(donations))
+            .toList();
 
         // Sort by total amount
         userDonations.sort((a, b) => b.totalAmount.compareTo(a.totalAmount));

@@ -13,7 +13,6 @@ import 'medical_services_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'authentication/sign_in_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoScroll();
     });
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -72,7 +71,8 @@ class _HomeScreenState extends State<HomeScreen>
     _timer?.cancel(); // Cancel any existing timer
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (!mounted) return; // Check if widget is still mounted
-      if (_pageController.hasClients) { // Check if controller has clients
+      if (_pageController.hasClients) {
+        // Check if controller has clients
         if (_currentImageIndex < _imageUrls.length - 1) {
           _currentImageIndex++;
         } else {
@@ -258,18 +258,18 @@ class _HomeScreenState extends State<HomeScreen>
         if (title == 'Pet Adoption Day!') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) =>  EventScreen()),
+            MaterialPageRoute(builder: (context) => EventScreen()),
           );
         } else if (title == 'Want to Adopt?') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) =>  DogScreen()),
+            MaterialPageRoute(builder: (context) => DogScreen()),
           );
         } else if (title == 'Medical Concerns?') {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>  MedicalServicesScreen(),
+              builder: (context) => MedicalServicesScreen(),
             ),
           );
         } else if (title == 'Shop Here!') {
@@ -295,9 +295,9 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(

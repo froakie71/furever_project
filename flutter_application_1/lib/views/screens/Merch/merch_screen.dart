@@ -22,23 +22,37 @@ class MerchScreen extends StatelessWidget {
     }
   }
 
+  void _showAddMerchModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => DraggableScrollableSheet(
+            initialChildSize: 0.95,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            builder:
+                (_, controller) => Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  child: const AddMerchScreen(),
+                ),
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Merchandise'),
-        elevation: 2,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddMerchScreen()),
-              );
-            },
-          ),
-        ],
+      appBar: AppBar(title: const Text('Merchandise'), elevation: 2),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddMerchModal(context),
+        child: const Icon(Icons.add),
       ),
       body: BlocBuilder<MerchBloc, MerchState>(
         builder: (context, state) {

@@ -10,13 +10,10 @@ class DogsListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Dogs List')),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            FirebaseFirestore.instance
-                .collection('dogs')
-                .orderBy('createdAt', descending: true) // Sort by newest first
-                .snapshots(),
+        stream: FirebaseFirestore.instance.collection('dogs').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
+            print('Firestore Error: ${snapshot.error}');
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
@@ -25,9 +22,16 @@ class DogsListScreen extends StatelessWidget {
           }
 
           final dogs = snapshot.data!.docs;
+          print('Number of dogs fetched: ${dogs.length}');
 
           if (dogs.isEmpty) {
             return const Center(child: Text('No dogs available'));
+          }
+
+          // Debug print first dog data
+          if (dogs.isNotEmpty) {
+            final firstDog = dogs.first.data() as Map<String, dynamic>;
+            print('First dog data: $firstDog');
           }
 
           return ListView.builder(
@@ -45,18 +49,80 @@ class DogsListScreen extends StatelessWidget {
                       children: [
                         if (dog['imageUrl'] != null &&
                             dog['imageUrl'].isNotEmpty)
-                          Image.network(
-                            dog['imageUrl'],
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              height: 300,
+                              width: double.infinity,
+                              child: Image.network(
+                                dog['imageUrl'],
+                                fit: BoxFit.cover,
+                                cacheHeight: 400,
+                                cacheWidth: 600,
+                                loadingBuilder: (
+                                  context,
+                                  child,
+                                  loadingProgress,
+                                ) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    height: 200,
+                                    color: Colors.grey[200],
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        value:
+                                            loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  print('Error loading image: $error');
+                                  return Container(
+                                    height: 200,
+                                    color: Colors.grey[300],
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          size: 40,
+                                          color: Colors.grey[600],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Unable to load image',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
                             height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                height: 200,
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.error),
-                              );
-                            },
+                            color: Colors.grey[300],
+                            child: Center(
+                              child: Icon(
+                                Icons.photo_library,
+                                size: 40,
+                                color: Colors.grey[600],
+                              ),
+                            ),
                           ),
                         // Add status badge
                         Positioned(

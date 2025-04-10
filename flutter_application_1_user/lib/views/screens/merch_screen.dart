@@ -5,7 +5,6 @@ import 'package:flutter_application_1_user/views/screens/donation_screen.dart';
 import 'package:flutter_application_1_user/views/screens/event_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'medical_services_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1_user/models/product_model.dart';
 

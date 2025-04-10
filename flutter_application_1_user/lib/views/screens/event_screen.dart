@@ -10,7 +10,6 @@ import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/screens/participated_events_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'medical_services_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1_user/models/event_model.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
@@ -55,23 +54,22 @@ class EventScreen extends StatelessWidget {
                 icon: const Icon(Icons.event_available),
                 onPressed: () async {
                   context.read<EventRegistrationBloc>().add(
-                    LoadParticipatedEvents(),
-                  );
+                        LoadParticipatedEvents(),
+                      );
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => BlocProvider.value(
-                            value: context.read<EventRegistrationBloc>(),
-                            child: const ParticipatedEventsScreen(),
-                          ),
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<EventRegistrationBloc>(),
+                        child: const ParticipatedEventsScreen(),
+                      ),
                     ),
                   );
                   // Refresh the registration status when returning
                   if (context.mounted) {
                     context.read<EventRegistrationBloc>().add(
-                      CheckRegisteredEvents(),
-                    );
+                          CheckRegisteredEvents(),
+                        );
                   }
                 },
               ),
@@ -90,11 +88,10 @@ class EventScreen extends StatelessWidget {
           ),
           endDrawer: const SharedDrawer(),
           body: StreamBuilder<QuerySnapshot>(
-            stream:
-                FirebaseFirestore.instance
-                    .collection('events')
-                    .orderBy('date')
-                    .snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('events')
+                .orderBy('date')
+                .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));
@@ -108,11 +105,10 @@ class EventScreen extends StatelessWidget {
                 return const Center(child: Text('No events available'));
               }
 
-              final events =
-                  snapshot.data!.docs.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return Event.fromFirestore(data, doc.id);
-                  }).toList();
+              final events = snapshot.data!.docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return Event.fromFirestore(data, doc.id);
+              }).toList();
 
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -229,10 +225,8 @@ class EventScreen extends StatelessWidget {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: BlocConsumer<
-                                      EventRegistrationBloc,
-                                      EventRegistrationState
-                                    >(
+                                    child: BlocConsumer<EventRegistrationBloc,
+                                        EventRegistrationState>(
                                       listener: (context, state) {
                                         if (state is EventRegistrationSuccess) {
                                           ScaffoldMessenger.of(
@@ -248,32 +242,29 @@ class EventScreen extends StatelessWidget {
                                         }
                                       },
                                       builder: (context, state) {
-                                        final isRegistered =
-                                            state is RegisteredEventsLoaded &&
+                                        final isRegistered = state
+                                                is RegisteredEventsLoaded &&
                                             state.registeredEventIds.contains(
                                               event.id,
                                             );
 
                                         return ElevatedButton(
-                                          onPressed:
-                                              isRegistered
-                                                  ? null
-                                                  : () {
-                                                    context
-                                                        .read<
-                                                          EventRegistrationBloc
-                                                        >()
-                                                        .add(
-                                                          RegisterForEvent(
-                                                            event.id,
-                                                          ),
-                                                        );
-                                                  },
+                                          onPressed: isRegistered
+                                              ? null
+                                              : () {
+                                                  context
+                                                      .read<
+                                                          EventRegistrationBloc>()
+                                                      .add(
+                                                        RegisterForEvent(
+                                                          event.id,
+                                                        ),
+                                                      );
+                                                },
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                isRegistered
-                                                    ? Colors.grey
-                                                    : const Color(0xFF32649B),
+                                            backgroundColor: isRegistered
+                                                ? Colors.grey
+                                                : const Color(0xFF32649B),
                                             foregroundColor: Colors.white,
                                           ),
                                           child: Text(
