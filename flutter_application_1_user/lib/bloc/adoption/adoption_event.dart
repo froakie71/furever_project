@@ -13,3 +13,13 @@ class SubmitAdoption extends AdoptionEvent {
     required this.userEmail,
   });
 }
+
+class RequestAdoption extends AdoptionEvent {
+  final String userId;
+  final String dogId;
+
+  RequestAdoption({
+    required this.userId,
+    required this.dogId,
+  });
+}

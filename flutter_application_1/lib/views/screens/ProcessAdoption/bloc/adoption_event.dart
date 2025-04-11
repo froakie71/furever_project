@@ -12,3 +12,15 @@ class DeclineAdoption extends AdoptionEvent {
   final String dogId;
   DeclineAdoption({required this.adoptionId, required this.dogId});
 }
+
+class UpdateAdoptionStatus extends AdoptionEvent {
+  final String adoptionId;
+  final String dogId;
+  final bool isDeclined;
+
+  UpdateAdoptionStatus({
+    required this.adoptionId,
+    required this.dogId,
+    required this.isDeclined,
+  });
+}

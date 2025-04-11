@@ -24,6 +24,13 @@ class AddDog extends DogEvent {
   });
 }
 
+class ProcessAdoption extends DogEvent {
+  final String dogId;
+  final bool isApproved;
+
+  ProcessAdoption({required this.dogId, required this.isApproved});
+}
+
 class LoadDogs extends DogEvent {}
 
 class Dog {

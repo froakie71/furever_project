@@ -81,7 +81,7 @@ class AdminHomeView extends StatelessWidget {
             stream:
                 FirebaseFirestore.instance
                     .collection('adoptions')
-                    .where('status', isEqualTo: 'accepted')
+                    .where('status', isEqualTo: 'approved')
                     .snapshots(),
             builder:
                 (context, snapshot) => _buildSingleStatCard(
@@ -92,7 +92,10 @@ class AdminHomeView extends StatelessWidget {
                 ),
           ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('dogs').snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('dogs')
+                .where('status', isEqualTo: 'available')
+                .snapshots(),
             builder:
                 (context, snapshot) => _buildSingleStatCard(
                   'Available Dogs',
@@ -187,7 +190,7 @@ class AdminHomeView extends StatelessWidget {
       stream:
           FirebaseFirestore.instance
               .collection('adoptions')
-              .where('status', isEqualTo: 'accepted')
+              .where('status', isEqualTo: 'approved')
               .snapshots(), // Removed orderBy to avoid index requirement
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -202,8 +205,8 @@ class AdminHomeView extends StatelessWidget {
         // Group adoptions by month
         for (var adoption in adoptions) {
           final data = adoption.data() as Map<String, dynamic>;
-          if (data['submittedAt'] != null) {
-            final date = (data['submittedAt'] as Timestamp).toDate();
+          if (data['approvedAt'] != null) {
+            final date = (data['approvedAt'] as Timestamp).toDate();
             final monthKey = '${date.year}-${date.month}';
             monthlyAdoptions[monthKey] = (monthlyAdoptions[monthKey] ?? 0) + 1;
           }

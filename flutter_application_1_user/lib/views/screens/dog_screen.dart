@@ -280,13 +280,9 @@ class DogScreen extends StatelessWidget {
 
     if (shouldProceed != true || !context.mounted) return;
 
-    // Submit adoption request
+    // Updated: Use RequestAdoption event
     context.read<AdoptionBloc>().add(
-      SubmitAdoption(
-        dog: dog,
-        userId: currentUser.uid,
-        userEmail: currentUser.email ?? '',
-      ),
+      RequestAdoption(userId: currentUser.uid, dogId: dog.id),
     );
 
     // Show processing dialog
@@ -301,29 +297,14 @@ class DogScreen extends StatelessWidget {
                 Navigator.of(context).pop(); // Close dog details
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Adoption process started successfully!'),
+                    content: Text('Adoption request submitted successfully!'),
                     backgroundColor: Colors.green,
-                  ),
-                );
-              } else if (state is AdoptionError) {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: ${state.message}'),
-                    backgroundColor: Colors.red,
                   ),
                 );
               }
             },
-            child: BlocBuilder<AdoptionBloc, AdoptionState>(
-              builder: (context, state) {
-                if (state is AdoptionLoading) {
-                  return const AlertDialog(
-                    content: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+            child: const AlertDialog(
+              content: Center(child: CircularProgressIndicator()),
             ),
           ),
     );

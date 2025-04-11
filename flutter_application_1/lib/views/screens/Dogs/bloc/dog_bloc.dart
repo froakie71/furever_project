@@ -45,6 +45,7 @@ class DogBloc extends Bloc<DogEvent, DogState> {
           'medicalRecords': event.medicalRecords,
           'imageUrl': imageUrl,
           'description': event.description,
+          'status': 'available', // Add this field
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -53,5 +54,46 @@ class DogBloc extends Bloc<DogEvent, DogState> {
         emit(DogError(e.toString()));
       }
     });
+
+    on<ProcessAdoption>(_onProcessAdoption);
+  }
+
+  Future<void> _handleAdoptionRequest(String dogId, String status) async {
+    try {
+      // Update dog status in dogs collection
+      await FirebaseFirestore.instance
+          .collection('dogs')
+          .doc(dogId)
+          .update({'status': status});
+
+      // If declined, remove from adoptions collection
+      if (status == 'declined') {
+        final adoptionsQuery = await FirebaseFirestore.instance
+            .collection('adoptions')
+            .where('dogId', isEqualTo: dogId)
+            .where('status', isEqualTo: 'pending')
+            .get();
+
+        for (var doc in adoptionsQuery.docs) {
+          await doc.reference.delete();
+        }
+      }
+    } catch (e) {
+      print('Error updating adoption status: $e');
+      throw Exception('Failed to update adoption status');
+    }
+  }
+
+  Future<void> _onProcessAdoption(ProcessAdoption event, Emitter<DogState> emit) async {
+    try {
+      if (event.isApproved) {
+        await _handleAdoptionRequest(event.dogId, 'adopted');
+      } else {
+        await _handleAdoptionRequest(event.dogId, 'available');
+      }
+      emit(AdoptionProcessed());
+    } catch (e) {
+      emit(DogError(e.toString()));
+    }
   }
 }

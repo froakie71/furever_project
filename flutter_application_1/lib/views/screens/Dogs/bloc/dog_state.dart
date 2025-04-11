@@ -8,5 +8,8 @@ class DogSuccess extends DogState {}
 
 class DogError extends DogState {
   final String message;
+
   DogError(this.message);
-} 
+}
+
+class AdoptionProcessed extends DogState {}
