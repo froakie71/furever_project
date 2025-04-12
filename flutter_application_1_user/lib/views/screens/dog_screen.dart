@@ -328,7 +328,7 @@ class DogScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMedicalRecords(Map<String, bool> medicalRecords) {
+  Widget _buildMedicalRecords(String medicalRecords) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -337,45 +337,24 @@ class DogScreen extends StatelessWidget {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              medicalRecords.entries.map((entry) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: entry.value ? Colors.green[100] : Colors.red[100],
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: entry.value ? Colors.green : Colors.red,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        entry.value ? Icons.check_circle : Icons.cancel,
-                        size: 16,
-                        color: entry.value ? Colors.green : Colors.red,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        entry.key,
-                        style: TextStyle(
-                          color:
-                              entry.value ? Colors.green[900] : Colors.red[900],
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Text(
+            medicalRecords.isEmpty
+                ? 'No medical records available'
+                : medicalRecords,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[800],
+              height: 1.5,
+            ),
+          ),
         ),
       ],
     );

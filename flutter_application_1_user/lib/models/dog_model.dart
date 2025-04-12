@@ -9,7 +9,7 @@ class Dog {
   final String description;
   final String imageUrl;
   final String status;
-  final Map<String, bool> medicalRecords; // Change this to Map<String, bool>
+  final String medicalRecords; // Changed to String type
   final String? adoptedBy;
 
   Dog({
@@ -20,13 +20,26 @@ class Dog {
     required this.size,
     required this.description,
     required this.imageUrl,
-    this.status = 'available',
-    this.medicalRecords = const {}, // Default to empty map
+    required this.status,
+    required this.medicalRecords, // Now expects String
     this.adoptedBy,
   });
 
   factory Dog.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
+    // Handle medical records that could be either Map or String
+    String medicalRecordsStr = '';
+    final medicalRecords = data['medicalRecords'];
+    if (medicalRecords is Map) {
+      // Convert map to string representation if needed
+      medicalRecordsStr = medicalRecords.entries
+          .map((e) => '${e.key}: ${e.value}')
+          .join('\n');
+    } else if (medicalRecords is String) {
+      medicalRecordsStr = medicalRecords;
+    }
+
     return Dog(
       id: doc.id,
       name: data['name'] ?? '',
@@ -35,9 +48,34 @@ class Dog {
       size: data['size'] ?? '',
       description: data['description'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
-      status: data['status'] ?? 'available', // Default to available if missing
-      medicalRecords: Map<String, bool>.from(data['medicalRecords'] ?? {}),
+      status: data['status'] ?? 'available',
+      medicalRecords: medicalRecordsStr,
       adoptedBy: data['adoptedBy']?['userEmail'] as String?,
+    );
+  }
+
+  factory Dog.fromMap(Map<String, dynamic> map, String id) {
+    // Similar handling for fromMap
+    String medicalRecordsStr = '';
+    final medicalRecords = map['medicalRecords'];
+    if (medicalRecords is Map) {
+      medicalRecordsStr = medicalRecords.entries
+          .map((e) => '${e.key}: ${e.value}')
+          .join('\n');
+    } else if (medicalRecords is String) {
+      medicalRecordsStr = medicalRecords;
+    }
+
+    return Dog(
+      id: id,
+      name: map['name'] as String,
+      breed: map['breed'] as String,
+      gender: map['gender'] as String,
+      size: map['size'] as String,
+      description: map['description'] as String,
+      imageUrl: map['imageUrl'] as String,
+      status: map['status'] as String,
+      medicalRecords: medicalRecordsStr,
     );
   }
 }

@@ -7,9 +7,9 @@ class AddDog extends DogEvent {
   final String breed;
   final String gender;
   final String size;
-  final Map<String, bool> medicalRecords;
+  final String medicalRecords; // Changed from Map to String
   final String imageUrl;
-  final String description;
+  final String description; // Make sure this is defined as String
   final Uint8List imageBytes;
 
   AddDog({
@@ -17,7 +17,7 @@ class AddDog extends DogEvent {
     required this.breed,
     required this.gender,
     required this.size,
-    required this.medicalRecords,
+    required this.medicalRecords, // Now expects a String
     required this.imageUrl,
     required this.description,
     required this.imageBytes,

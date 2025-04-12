@@ -37,12 +37,6 @@ class _AddDogScreenState extends State<AddDogScreen> {
 
   final _medicalRecordController = TextEditingController();
 
-  final Map<String, bool> _medicalRecords = {
-    'Vaccinated': false,
-    'Dewormed': false,
-    'Spayed/Neutered': false,
-  };
-
   Future<void> _pickImage() async {
     try {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -197,22 +191,16 @@ class _AddDogScreenState extends State<AddDogScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Medical Records',
                     border: OutlineInputBorder(),
-                    hintText: 'Enter medical history and status',
+                    hintText:
+                        'Enter complete medical history (vaccinations, deworming, etc.)',
                   ),
-                  maxLines: 3,
-                  onChanged: (value) {
-                    setState(() {
-                      _medicalRecords['Vaccinated'] = value
-                          .toLowerCase()
-                          .contains('vaccinated');
-                      _medicalRecords['Dewormed'] = value
-                          .toLowerCase()
-                          .contains('dewormed');
-                      _medicalRecords['Spayed/Neutered'] =
-                          value.toLowerCase().contains('spayed') ||
-                          value.toLowerCase().contains('neutered');
-                    });
-                  },
+                  maxLines: 4, // Increased lines for better visibility
+                  keyboardType: TextInputType.multiline,
+                  validator:
+                      (value) =>
+                          value?.isEmpty ?? true
+                              ? 'Please enter medical records'
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -220,8 +208,10 @@ class _AddDogScreenState extends State<AddDogScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Description',
                     border: OutlineInputBorder(),
+                    hintText: 'Enter dog description',
                   ),
                   maxLines: 3,
+                  keyboardType: TextInputType.multiline,
                   validator:
                       (value) =>
                           value?.isEmpty ?? true
@@ -247,9 +237,11 @@ class _AddDogScreenState extends State<AddDogScreen> {
                             breed: _breedController.text,
                             gender: _selectedGender,
                             size: _selectedSize,
-                            medicalRecords: _medicalRecords,
+                            medicalRecords:
+                                _medicalRecordController
+                                    .text, // Now passing the text directly
                             imageUrl: imageData,
-                            imageBytes: webImage!, // pass the Uint8List type
+                            imageBytes: webImage!,
                             description: _descriptionController.text,
                           ),
                         );

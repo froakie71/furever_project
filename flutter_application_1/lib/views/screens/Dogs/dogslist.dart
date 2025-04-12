@@ -239,9 +239,6 @@ class DogsListScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        final medicalRecords =
-            dog['medicalRecords'] as Map<String, dynamic>? ?? {};
-
         return Container(
           height: MediaQuery.of(context).size.height * 0.8,
           padding: const EdgeInsets.all(20),
@@ -287,19 +284,31 @@ class DogsListScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Medical Records',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '• Vaccinated: ${medicalRecords['Vaccinated'] ? 'Yes' : 'No'}\n'
-                  '• Dewormed: ${medicalRecords['Dewormed'] ? 'Yes' : 'No'}\n'
-                  '• Spayed/Neutered: ${medicalRecords['Spayed/Neutered'] ? 'Yes' : 'No'}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    height: 1.5,
+                // Medical Records Section
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Medical Records',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        dog['medicalRecords']?.toString() ??
+                            'No medical records available',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),

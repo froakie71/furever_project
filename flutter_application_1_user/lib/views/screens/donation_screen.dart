@@ -52,6 +52,66 @@ class _DonationScreenState extends State<DonationScreen> {
     }
   }
 
+  Future<String> _getUserDisplayName(String userId) async {
+    try {
+      final userDoc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        final userData = userDoc.data()!;
+        // First try to get username
+        final username = userData['username'] as String?;
+        if (username != null && username.isNotEmpty) {
+          return username;
+        }
+        // If no username, use email
+        final email = userData['email'] as String?;
+        if (email != null && email.isNotEmpty) {
+          return email;
+        }
+      }
+      return 'Anonymous';
+    } catch (e) {
+      debugPrint('Error fetching user data: $e');
+      return 'Anonymous';
+    }
+  }
+
+  Color _getLeaderColor(int index) {
+    switch (index) {
+      case 0:
+        return Colors.amber; // Gold
+      case 1:
+        return Colors.grey[400]!; // Silver
+      case 2:
+        return Colors.brown[300]!; // Bronze
+      default:
+        return Colors.blue[100]!;
+    }
+  }
+
+  Widget _getLeaderIcon(int index) {
+    switch (index) {
+      case 0:
+        return const Icon(Icons.emoji_events, color: Colors.white);
+      case 1:
+        return const Icon(Icons.workspace_premium, color: Colors.white);
+      case 2:
+        return const Icon(Icons.military_tech, color: Colors.white);
+      default:
+        return Text(
+          '${index + 1}',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -306,129 +366,119 @@ class _DonationScreenState extends State<DonationScreen> {
   }
 
   Widget _buildTopDonators(List<Map<String, dynamic>> topDonators) {
-    return Column(
-      children: [
-        // Top 5 Donators Container
-        Container(
-          padding: const EdgeInsets.all(25),
-          color: Colors.orange.shade50,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'Top 5 Donators 🏆',
-                style: TextStyle(
-                  color: Color.fromARGB(255, 255, 133, 33),
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: topDonators.length > 5 ? 5 : topDonators.length,
-                itemBuilder: (context, index) {
-                  final donator = topDonators[index];
-                  return _buildDonatorCard(donator, index, true);
-                },
-              ),
-            ],
-          ),
-        ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('donations').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        // All Donators Section
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        Map<String, Map<String, dynamic>> userDonations = {};
+
+        for (var doc in snapshot.data!.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final userId = data['userId'] as String;
+          final amount = (data['amount'] as num).toDouble();
+
+          if (!userDonations.containsKey(userId)) {
+            userDonations[userId] = {'userId': userId, 'total': amount};
+          } else {
+            userDonations[userId]!['total'] += amount;
+          }
+        }
+
+        final sortedDonators =
+            userDonations.values.toList()..sort(
+              (a, b) => (b['total'] as double).compareTo(a['total'] as double),
+            );
+
+        return Column(
+          children: [
+            // Top 5 Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.orange.shade50,
+              child: Column(
                 children: [
                   const Text(
-                    'All Donators',
+                    'Top 5 Donators 🏆',
                     style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 20,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 255, 133, 33),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount:
+                        sortedDonators.length > 5 ? 5 : sortedDonators.length,
+                    itemBuilder: (context, index) {
+                      final donator = sortedDonators[index];
+                      return FutureBuilder<String>(
+                        future: _getUsernameFromId(donator['userId']),
+                        builder: (context, usernameSnapshot) {
+                          final username =
+                              usernameSnapshot.data ?? 'Loading...';
+
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: _getLeaderColor(index),
+                              child: _getLeaderIcon(index),
+                            ),
+                            title: Text(
+                              username,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            trailing: Text(
+                              '₱${(donator['total'] as double).toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: Colors.green.shade700,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onTap: () => _showDonatorDetails(context, donator),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                height: 300,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
+            ),
+
+            // All Donators Section
+            Container(
+              margin: const EdgeInsets.all(16),
+              height: 300,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'All Donators (${sortedDonators.length})',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
                     ),
-                  ],
-                ),
-                child: StreamBuilder<QuerySnapshot>(
-                  stream:
-                      FirebaseFirestore.instance
-                          .collection('donations')
-                          .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: sortedDonators.length,
+                      itemBuilder: (context, index) {
+                        final donator = sortedDonators[index];
+                        return FutureBuilder<String>(
+                          future: _getUsernameFromId(donator['userId']),
+                          builder: (context, usernameSnapshot) {
+                            final username =
+                                usernameSnapshot.data ?? 'Loading...';
 
-                    // Group donations by user and calculate totals
-                    Map<String, Map<String, dynamic>> userDonations = {};
-
-                    for (var doc in snapshot.data!.docs) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      final userId = data['userId'] as String;
-                      final amount = (data['amount'] as num).toDouble();
-                      final email =
-                          data['userEmail'] as String? ??
-                          'Anonymous'; // Changed from email to userEmail
-
-                      if (!userDonations.containsKey(userId)) {
-                        userDonations[userId] = {
-                          'email': email,
-                          'total': amount,
-                          'userId': userId,
-                        };
-                      } else {
-                        userDonations[userId]!['total'] =
-                            (userDonations[userId]!['total'] as double) +
-                            amount;
-                      }
-                    }
-
-                    // Convert to list and sort
-                    final sortedDonators =
-                        userDonations.values.toList()..sort(
-                          (a, b) => (b['total'] as double).compareTo(
-                            a['total'] as double,
-                          ),
-                        );
-
-                    return sortedDonators.isEmpty
-                        ? const Center(
-                          child: Text(
-                            'No donations yet',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                        : ListView.builder(
-                          padding: const EdgeInsets.all(12),
-                          itemCount: sortedDonators.length,
-                          itemBuilder: (context, index) {
-                            final donator = sortedDonators[index];
                             return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
                               leading: CircleAvatar(
                                 backgroundColor: Colors.grey.shade100,
                                 child: Text(
@@ -439,11 +489,8 @@ class _DonationScreenState extends State<DonationScreen> {
                                   ),
                                 ),
                               ),
-                              title: Text(
-                                donator['email'] as String,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              subtitle: Text(
+                              title: Text(username),
+                              trailing: Text(
                                 '₱${(donator['total'] as double).toStringAsFixed(2)}',
                                 style: TextStyle(
                                   color: Colors.green.shade700,
@@ -453,13 +500,15 @@ class _DonationScreenState extends State<DonationScreen> {
                             );
                           },
                         );
-                  },
-                ),
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -568,19 +617,96 @@ class _DonationScreenState extends State<DonationScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                // Donor info header
+                // Donor info header with profile image
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      Text(
-                        donator['email'],
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF32649B),
-                        ),
+                      // Add profile image
+                      StreamBuilder<DocumentSnapshot>(
+                        stream:
+                            FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(donator['userId'])
+                                .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData &&
+                              snapshot.data?.data() != null) {
+                            final userData =
+                                snapshot.data!.data() as Map<String, dynamic>;
+                            return Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: 40,
+                                  backgroundColor: Colors.grey[200],
+                                  backgroundImage:
+                                      userData['profileImage'] != null
+                                          ? NetworkImage(
+                                            userData['profileImage'],
+                                          )
+                                          : null,
+                                  child:
+                                      userData['profileImage'] == null
+                                          ? const Icon(
+                                            Icons.person,
+                                            size: 40,
+                                            color: Colors.grey,
+                                          )
+                                          : null,
+                                ),
+                                const SizedBox(height: 8),
+                                FutureBuilder<String>(
+                                  future: _getUserDisplayName(
+                                    donator['userId'],
+                                  ),
+                                  builder: (context, snapshot) {
+                                    final displayName =
+                                        snapshot.data ?? 'Loading...';
+                                    return Text(
+                                      displayName,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF32649B),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          }
+                          return Column(
+                            children: [
+                              const CircleAvatar(
+                                radius: 40,
+                                backgroundColor: Colors.grey,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              FutureBuilder<String>(
+                                future: _getUserDisplayName(donator['userId']),
+                                builder: (context, snapshot) {
+                                  final displayName =
+                                      snapshot.data ?? 'Loading...';
+                                  return Text(
+                                    displayName,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF32649B),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
                       ),
+                      const SizedBox(height: 8),
                       Text(
                         'Total Donations: ₱${donator['total'].toStringAsFixed(2)}',
                         style: TextStyle(
@@ -592,21 +718,42 @@ class _DonationScreenState extends State<DonationScreen> {
                     ],
                   ),
                 ),
-                // Donation history
+                // Rest of the donation history section remains the same...
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
+                    // Remove the orderBy to avoid requiring an index
                     stream:
                         FirebaseFirestore.instance
                             .collection('donations')
                             .where('userId', isEqualTo: donator['userId'])
-                            .orderBy('timestamp', descending: true)
                             .snapshots(),
                     builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
 
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Center(
+                          child: Text('No donation history available'),
+                        );
+                      }
+
                       final donations = snapshot.data!.docs;
+                      donations.sort((a, b) {
+                        final timestampA =
+                            (a.data() as Map<String, dynamic>)['timestamp']
+                                as Timestamp;
+                        final timestampB =
+                            (b.data() as Map<String, dynamic>)['timestamp']
+                                as Timestamp;
+                        return timestampB.compareTo(
+                          timestampA,
+                        ); // Sort descending
+                      });
 
                       return ListView.builder(
                         padding: const EdgeInsets.all(16),
@@ -616,62 +763,93 @@ class _DonationScreenState extends State<DonationScreen> {
                               donations[index].data() as Map<String, dynamic>;
                           final timestamp = donation['timestamp'] as Timestamp;
                           final date = timestamp.toDate();
+                          final proofUrl =
+                              donation['imageUrl']
+                                  as String?; // Changed from proofImageUrl to imageUrl
 
                           return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              leading: Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.shade50,
-                                  borderRadius: BorderRadius.circular(8),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ListTile(
+                                  leading: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.payments_outlined,
+                                      color: Colors.orange.shade800,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    '₱${donation['amount'].toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    DateFormat(
+                                      'MMM dd, yyyy - hh:mm a',
+                                    ).format(date),
+                                    style: TextStyle(color: Colors.grey[600]),
+                                  ),
                                 ),
-                                child: Icon(
-                                  Icons.payments_outlined,
-                                  color: Colors.orange.shade800,
-                                ),
-                              ),
-                              title: Text(
-                                '₱${donation['amount'].toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              subtitle: Text(
-                                DateFormat(
-                                  'MMM dd, yyyy - hh:mm a',
-                                ).format(date),
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                              trailing:
-                                  donation['proofUrl'] != null
-                                      ? IconButton(
-                                        icon: const Icon(Icons.image),
-                                        onPressed: () {
-                                          // Show proof of donation image
-                                          showDialog(
-                                            context: context,
-                                            builder:
-                                                (context) => Dialog(
-                                                  child: Container(
-                                                    width: 300,
-                                                    height: 300,
-                                                    decoration: BoxDecoration(
-                                                      image: DecorationImage(
-                                                        image: NetworkImage(
-                                                          donation['proofUrl'],
-                                                        ),
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
+                                if (proofUrl != null &&
+                                    proofUrl.isNotEmpty) ...[
+                                  const Divider(),
+                                  Container(
+                                    width: double.infinity,
+                                    height: 300,
+                                    margin: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey.shade200,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.shade200,
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        proofUrl,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder: (
+                                          context,
+                                          child,
+                                          loadingProgress,
+                                        ) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value:
+                                                  loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                      : null,
+                                            ),
                                           );
                                         },
-                                      )
-                                      : null,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           );
                         },
@@ -696,5 +874,104 @@ class _DonationScreenState extends State<DonationScreen> {
         duration: Duration(seconds: 2),
       ),
     );
+  }
+
+  // Add this helper method to show proof images
+  void _showProofImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => Dialog(
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+    );
+  }
+
+  // Add this method to show full-screen image:
+  void _showFullImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.zero,
+            child: Stack(
+              fit: StackFit.loose,
+              children: [
+                InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value:
+                              loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Future<String> _getUsernameFromId(String userId) async {
+    try {
+      final userDoc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        final userData = userDoc.data()!;
+        // First try to get username
+        final username = userData['username'] as String?;
+        if (username != null && username.isNotEmpty) {
+          return username;
+        }
+        // Then try email
+        final email = userData['email'] as String?;
+        if (email != null && email.isNotEmpty) {
+          return email.split('@')[0];
+        }
+      }
+      return 'Anonymous';
+    } catch (e) {
+      debugPrint('Error fetching username: $e');
+      return 'Anonymous';
+    }
   }
 }

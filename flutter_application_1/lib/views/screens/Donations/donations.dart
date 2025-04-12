@@ -5,9 +5,45 @@ import 'package:intl/intl.dart';
 import 'bloc/donator_bloc.dart';
 import 'bloc/donator_event.dart';
 import 'bloc/donator_state.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TopDonatorsScreen extends StatelessWidget {
   const TopDonatorsScreen({super.key});
+
+  Future<String> _getUsernameFromId(String userId) async {
+    try {
+      final userDoc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        // First try to get username
+        final username = userData?['username'] as String?;
+        if (username != null && username.isNotEmpty) {
+          return username;
+        }
+        // If no username, use email without domain
+        final email = userData?['email'] as String?;
+        if (email != null && email.isNotEmpty) {
+          return email.split('@')[0];
+        }
+      }
+      return 'Anonymous';
+    } catch (e) {
+      debugPrint('Error fetching username: $e');
+      return 'Anonymous';
+    }
+  }
+
+  String _getDisplayName(int index, String email) {
+    // Remove @gmail.com or other email domains
+    String username = email.split('@')[0];
+    // Return "User #X" if username is empty or null
+    return username.isEmpty ? 'User #${index + 1}' : username;
+  }
 
   void _showAddDonatorDialog(BuildContext context) {
     final nameController = TextEditingController();
@@ -83,7 +119,7 @@ class TopDonatorsScreen extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Donations Summary'),
+            title: const Text('Top 5 Donators'),
             backgroundColor: const Color(0xFF32649B),
           ),
           body: Column(
@@ -97,7 +133,7 @@ class TopDonatorsScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         const Text(
-                          'Total All Donations',
+                          'Total Donations',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -117,7 +153,7 @@ class TopDonatorsScreen extends StatelessWidget {
                   ),
                 ),
 
-              // Users list
+              // Top 5 Users list
               Expanded(
                 child: Builder(
                   builder: (context) {
@@ -128,52 +164,77 @@ class TopDonatorsScreen extends StatelessWidget {
                       return Center(child: Text(state.message));
                     }
                     if (state is DonatorSuccess) {
+                      // Sort by total amount and take top 5
+                      final topDonators =
+                          List.from(state.userDonations)
+                            ..sort(
+                              (a, b) => b.totalAmount.compareTo(a.totalAmount),
+                            )
+                            ..take(5);
+
                       return ListView.builder(
-                        itemCount: state.userDonations.length,
+                        itemCount:
+                            topDonators.length > 5 ? 5 : topDonators.length,
                         itemBuilder: (context, index) {
-                          final userDonation = state.userDonations[index];
+                          final userDonation = topDonators[index];
+
                           return Card(
                             margin: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 8,
                             ),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: const Color(0xFFFFE0B2),
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
+                            child: FutureBuilder<String>(
+                              future: _getUsernameFromId(userDonation.userId),
+                              builder: (context, snapshot) {
+                                final username = snapshot.data ?? 'Loading...';
+
+                                return ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: _getLeaderColor(index),
+                                    child: _getLeaderIcon(index),
                                   ),
-                                ),
-                              ),
-                              title: Text(
-                                userDonation.userEmail,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              subtitle: Text(
-                                '${userDonation.donations.length} donations',
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              trailing: Text(
-                                '₱${NumberFormat('#,##0.00').format(userDonation.totalAmount)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF32649B),
-                                ),
-                              ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => DonationDetailsScreen(
-                                          userDonations: userDonation,
+                                  title: Text(
+                                    username,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    '${userDonation.donations.length} donations',
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                  trailing: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        '₱${NumberFormat('#,##0.00').format(userDonation.totalAmount)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF32649B),
                                         ),
+                                      ),
+                                      Text(
+                                        'Rank #${index + 1}',
+                                        style: TextStyle(
+                                          color: _getLeaderColor(index),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => DonationDetailsScreen(
+                                              userDonations: userDonation,
+                                            ),
+                                      ),
+                                    );
+                                  },
                                 );
                               },
                             ),
@@ -190,5 +251,37 @@ class TopDonatorsScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Color _getLeaderColor(int index) {
+    switch (index) {
+      case 0:
+        return Colors.amber; // Gold
+      case 1:
+        return Colors.grey[400]!; // Silver
+      case 2:
+        return Colors.brown[300]!; // Bronze
+      default:
+        return Colors.blue[100]!;
+    }
+  }
+
+  Widget _getLeaderIcon(int index) {
+    switch (index) {
+      case 0:
+        return const Icon(Icons.emoji_events, color: Colors.white);
+      case 1:
+        return const Icon(Icons.workspace_premium, color: Colors.white);
+      case 2:
+        return const Icon(Icons.military_tech, color: Colors.white);
+      default:
+        return Text(
+          '${index + 1}',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+    }
   }
 }

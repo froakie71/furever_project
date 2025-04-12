@@ -15,26 +15,17 @@ class DogBloc extends Bloc<DogEvent, DogState> {
 
         String imageUrl = '';
         if (event.imageUrl.isNotEmpty) {
-          final storageRef = FirebaseStorage.instance.ref();
-          final imageRef = storageRef.child(
-            'dogs/${DateTime.now().millisecondsSinceEpoch}.jpg',
+          final ref = FirebaseStorage.instance.ref().child(
+            'dogs/${DateTime.now().toString()}',
           );
 
           if (kIsWeb) {
-            // Handle web image upload
-            // final bytes = Uint8List.fromList(event.imageUrl.codeUnits);
-            final bytes = event.imageBytes;
-            await imageRef.putData(
-              bytes,
-              SettableMetadata(contentType: 'image/jpeg'),
-            );
+            await ref.putData(event.imageBytes);
           } else {
-            // Handle mobile image upload
-            final file = File(event.imageUrl);
-            await imageRef.putFile(file);
+            await ref.putFile(File(event.imageUrl));
           }
 
-          imageUrl = await imageRef.getDownloadURL();
+          imageUrl = await ref.getDownloadURL();
         }
 
         await FirebaseFirestore.instance.collection('dogs').add({
@@ -42,10 +33,11 @@ class DogBloc extends Bloc<DogEvent, DogState> {
           'breed': event.breed,
           'gender': event.gender,
           'size': event.size,
-          'medicalRecords': event.medicalRecords,
+          'medicalRecords':
+              event.medicalRecords, // This will now be text instead of a Map
           'imageUrl': imageUrl,
           'description': event.description,
-          'status': 'available', // Add this field
+          'status': 'available',
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -60,19 +52,17 @@ class DogBloc extends Bloc<DogEvent, DogState> {
 
   Future<void> _handleAdoptionRequest(String dogId, String status) async {
     try {
-      // Update dog status in dogs collection
-      await FirebaseFirestore.instance
-          .collection('dogs')
-          .doc(dogId)
-          .update({'status': status});
+      await FirebaseFirestore.instance.collection('dogs').doc(dogId).update({
+        'status': status,
+      });
 
-      // If declined, remove from adoptions collection
       if (status == 'declined') {
-        final adoptionsQuery = await FirebaseFirestore.instance
-            .collection('adoptions')
-            .where('dogId', isEqualTo: dogId)
-            .where('status', isEqualTo: 'pending')
-            .get();
+        final adoptionsQuery =
+            await FirebaseFirestore.instance
+                .collection('adoptions')
+                .where('dogId', isEqualTo: dogId)
+                .where('status', isEqualTo: 'pending')
+                .get();
 
         for (var doc in adoptionsQuery.docs) {
           await doc.reference.delete();
@@ -84,7 +74,10 @@ class DogBloc extends Bloc<DogEvent, DogState> {
     }
   }
 
-  Future<void> _onProcessAdoption(ProcessAdoption event, Emitter<DogState> emit) async {
+  Future<void> _onProcessAdoption(
+    ProcessAdoption event,
+    Emitter<DogState> emit,
+  ) async {
     try {
       if (event.isApproved) {
         await _handleAdoptionRequest(event.dogId, 'adopted');

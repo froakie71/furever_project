@@ -24,6 +24,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController();
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
   String? _imageUrl;
@@ -47,6 +48,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } catch (e) {
       debugPrint('Error picking image: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _addressController.dispose();
+    _ageController.dispose();
+    _genderController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _usernameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -358,6 +372,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 5),
                         TextFormField(
+                          controller: _usernameController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a username';
+                            }
+                            // Add username format validation
+                            if (value.length < 3) {
+                              return 'Username must be at least 3 characters';
+                            }
+                            if (value.contains(' ')) {
+                              return 'Username cannot contain spaces';
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Username',
+                            filled: true,
+                            fillColor: Colors.white,
+                            prefixIcon: Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(
+                                    color: Color(0xFF32649B),
+                                    width: 1.0,
+                                  ),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.account_circle_outlined,
+                                color: Color(0xFF32649B),
+                              ),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        TextFormField(
                           controller: _emailController,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -439,10 +497,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             onPressed:
                                 state is AuthLoading
                                     ? null
-                                    : () {
+                                    : () async {
                                       if (_formKey.currentState!.validate()) {
+                                        // Check if username already exists
+                                        final usernameQuery =
+                                            await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .where(
+                                                  'username',
+                                                  isEqualTo:
+                                                      _usernameController.text
+                                                          .trim(),
+                                                )
+                                                .get();
+
+                                        if (usernameQuery.docs.isNotEmpty) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Username already taken. Please choose another.',
+                                              ),
+                                            ),
+                                          );
+                                          return;
+                                        }
+
                                         final userData = {
                                           'fullName': _nameController.text,
+                                          'username':
+                                              _usernameController.text
+                                                  .trim(), // Ensure username is trimmed
                                           'email': _emailController.text,
                                           'address': _addressController.text,
                                           'age': _ageController.text,
@@ -547,4 +633,5 @@ class _SignUpScreenState extends State<SignUpScreen> {
       },
     );
   }
+
 }

@@ -19,11 +19,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        await _auth.signInWithEmailAndPassword(
+        final userCredential = await _auth.signInWithEmailAndPassword(
           email: event.email,
           password: event.password,
         );
-        emit(Authenticated());
+        emit(Authenticated(userCredential.user));
       } catch (e) {
         emit(AuthError(e.toString()));
       }
@@ -32,52 +32,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        // Create user account
+        // Create user with email and password
         final userCredential = await _auth.createUserWithEmailAndPassword(
           email: event.email,
           password: event.password,
         );
 
-        String? imageUrl;
-        // Upload image if provided
-        if (event.imageFile != null) {
-          // Create a unique file name using timestamp
-          final timestamp = DateTime.now().millisecondsSinceEpoch;
-          final fileName = 'user_images/${userCredential.user!.uid}_$timestamp';
+        // Upload profile image
+        final storageRef = _storage
+            .ref()
+            .child('user_profiles')
+            .child('${userCredential.user!.uid}.jpg');
 
-          // Upload for web
-          final ref = _storage.ref().child(fileName);
-          if (event.imageFile is File) {
-            // Handle mobile file upload
-            final uploadTask = await ref.putFile(
-              event.imageFile!,
-              SettableMetadata(contentType: 'image/jpeg'),
-            );
+        await storageRef.putFile(event.imageFile!);
+        final imageUrl = await storageRef.getDownloadURL();
 
-            // Get download URL
-            if (uploadTask.state == TaskState.success) {
-              imageUrl = await ref.getDownloadURL();
-            }
-          } else {
-            // Upload for other platforms
-            final metadata = SettableMetadata(
-              contentType: 'image/jpeg',
-              customMetadata: {'picked-file-path': fileName},
-            );
-
-            await ref.putBlob(event.imageFile, metadata);
-            imageUrl = await ref.getDownloadURL();
-          }
-        }
-
-        // Store user data with image URL in Firestore
+        // Create user document with all data including username
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           ...event.userData,
           'profileImage': imageUrl,
-          'uid': userCredential.user!.uid,
+          'userId': userCredential.user!.uid,
+          'username': event.userData['username'], // Ensure username is saved
         });
 
-        emit(Authenticated());
+        emit(Authenticated(userCredential.user!));
       } catch (e) {
         emit(AuthError(e.toString()));
       }
@@ -124,7 +102,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
                 'provider': 'google',
               }, SetOptions(merge: true));
 
-          emit(Authenticated());
+          emit(Authenticated(userCredential.user));
         }
       } on PlatformException catch (e) {
         emit(AuthError('Platform Error: ${e.message}'));

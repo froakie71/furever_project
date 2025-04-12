@@ -25,56 +25,71 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
     return FirebaseFirestore.instance
         .collection('adoptions')
         .where('userId', isEqualTo: currentUser.uid)
-        .where('status', isEqualTo: 'approved') // Changed from 'accepted' to 'approved'
+        .where(
+          'status',
+          isEqualTo: 'approved',
+        ) // Changed from 'accepted' to 'approved'
         .snapshots()
         .asyncMap((adoptionsSnapshot) async {
-      final adoptedDogs = <Map<String, dynamic>>[];
+          final adoptedDogs = <Map<String, dynamic>>[];
 
-      for (var adoption in adoptionsSnapshot.docs) {
-        try {
-          final adoptionData = adoption.data();
-          if (adoptionData == null) continue;
+          for (var adoption in adoptionsSnapshot.docs) {
+            try {
+              final adoptionData = adoption.data();
+              if (adoptionData == null) continue;
 
-          // Get dog details
-          final dogDoc = await FirebaseFirestore.instance
-              .collection('dogs')
-              .doc(adoptionData['dogId'])
-              .get();
+              // Get dog details
+              final dogDoc =
+                  await FirebaseFirestore.instance
+                      .collection('dogs')
+                      .doc(adoptionData['dogId'])
+                      .get();
 
-          if (!dogDoc.exists || dogDoc.data() == null) continue;
+              if (!dogDoc.exists || dogDoc.data() == null) continue;
 
-          final dogData = dogDoc.data()!;
+              final dogData = dogDoc.data()!;
 
-          // Include all relevant dog and adoption data
-          adoptedDogs.add({
-            'id': adoption.id,
-            'dogId': adoptionData['dogId'],
-            'dogName': dogData['name'] ?? 'Unknown', // Changed to use dog's actual name
-            'imageUrl': dogData['imageUrl'] ?? '',
-            'breed': dogData['breed'] ?? 'Unknown',
-            'adoptionDate': adoptionData['approvedAt'] ?? adoptionData['submittedAt'], // Use approval date
-            'vetVisits': dogData['vetVisits'] ?? 0,
-            'userEmail': currentUser.email ?? 'Unknown',
-            'status': adoptionData['status'] ?? 'approved',
-            'medicalRecords': dogData['medicalRecords'] ?? {},
-          });
-        } catch (e) {
-          debugPrint('Error processing adoption document: $e');
-          continue;
-        }
-      }
+              // Include all relevant dog and adoption data
+              adoptedDogs.add({
+                'id': adoption.id,
+                'dogId': adoptionData['dogId'],
+                'dogName':
+                    dogData['name'] ??
+                    'Unknown', // Changed to use dog's actual name
+                'imageUrl': dogData['imageUrl'] ?? '',
+                'breed': dogData['breed'] ?? 'Unknown',
+                'adoptionDate':
+                    adoptionData['approvedAt'] ??
+                    adoptionData['submittedAt'], // Use approval date
+                'vetVisits': dogData['vetVisits'] ?? 0,
+                'userEmail': currentUser.email ?? 'Unknown',
+                'status': adoptionData['status'] ?? 'approved',
+                'medicalRecords':
+                    dogData['medicalRecords'] ?? '', // Changed from {} to ''
+              });
+            } catch (e) {
+              debugPrint('Error processing adoption document: $e');
+              continue;
+            }
+          }
 
-      // Sort the dogs
-      if (_sortByNewest) {
-        adoptedDogs.sort((a, b) => (b['adoptionDate'] as Timestamp)
-            .compareTo(a['adoptionDate'] as Timestamp));
-      } else {
-        adoptedDogs.sort((a, b) => (a['adoptionDate'] as Timestamp)
-            .compareTo(b['adoptionDate'] as Timestamp));
-      }
+          // Sort the dogs
+          if (_sortByNewest) {
+            adoptedDogs.sort(
+              (a, b) => (b['adoptionDate'] as Timestamp).compareTo(
+                a['adoptionDate'] as Timestamp,
+              ),
+            );
+          } else {
+            adoptedDogs.sort(
+              (a, b) => (a['adoptionDate'] as Timestamp).compareTo(
+                b['adoptionDate'] as Timestamp,
+              ),
+            );
+          }
 
-      return adoptedDogs;
-    });
+          return adoptedDogs;
+        });
   }
 
   @override
@@ -125,16 +140,17 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
                     onSelected: (bool value) {
                       setState(() => _sortByNewest = value);
                     },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: true,
-                        child: Text('Sort by Newest'),
-                      ),
-                      const PopupMenuItem(
-                        value: false,
-                        child: Text('Sort by Oldest'),
-                      ),
-                    ],
+                    itemBuilder:
+                        (context) => [
+                          const PopupMenuItem(
+                            value: true,
+                            child: Text('Sort by Newest'),
+                          ),
+                          const PopupMenuItem(
+                            value: false,
+                            child: Text('Sort by Oldest'),
+                          ),
+                        ],
                   ),
                 ],
               ),
@@ -202,7 +218,8 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
   Widget _buildDogCard(Map<String, dynamic> dog) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      child: InkWell( // Add this InkWell
+      child: InkWell(
+        // Add this InkWell
         onTap: () => _showDogDetails(context, dog),
         child: Column(
           children: [
@@ -384,79 +401,87 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        child: Column(
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              height: 4,
-              width: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
+      builder:
+          (context) => Container(
+            height: MediaQuery.of(context).size.height * 0.85,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
             ),
-            // Dog Image
-            Container(
-              height: 200,
-              width: double.infinity,
-              margin: const EdgeInsets.all(16),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: Image.network(
-                  dog['imageUrl'],
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+            child: Column(
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
                     color: Colors.grey[300],
-                    child: const Icon(Icons.pets, size: 50),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-              ),
-            ),
-            // Dog Info
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      dog['dogName'],
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF32649B),
-                      ),
+                // Dog Image
+                Container(
+                  height: 200,
+                  width: double.infinity,
+                  margin: const EdgeInsets.all(16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Image.network(
+                      dog['imageUrl'],
+                      fit: BoxFit.cover,
+                      errorBuilder:
+                          (_, __, ___) => Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.pets, size: 50),
+                          ),
                     ),
-                    const SizedBox(height: 8),
-                    _buildInfoRow('Breed', dog['breed']),
-                    _buildInfoRow('Adoption Date', _formatDate(dog['adoptionDate'])),
-                    _buildInfoRow('Status', dog['status']),
-                    _buildInfoRow('Vet Visits', '${dog['vetVisits']} visits'),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Medical Records',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF32649B),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ..._buildMedicalRecordsList(dog['medicalRecords']),
-                  ],
+                  ),
                 ),
-              ),
+                // Dog Info
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          dog['dogName'],
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF32649B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInfoRow('Breed', dog['breed']),
+                        _buildInfoRow(
+                          'Adoption Date',
+                          _formatDate(dog['adoptionDate']),
+                        ),
+                        _buildInfoRow('Status', dog['status']),
+                        _buildInfoRow(
+                          'Vet Visits',
+                          '${dog['vetVisits']} visits',
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Medical Records',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF32649B),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ..._buildMedicalRecordsList(dog['medicalRecords']),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -479,9 +504,7 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -489,19 +512,48 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
     );
   }
 
-  List<Widget> _buildMedicalRecordsList(Map<String, dynamic> medicalRecords) {
-    return medicalRecords.entries.map((entry) {
-      return Card(
+  // Replace the existing _buildMedicalRecordsList method with:
+  List<Widget> _buildMedicalRecordsList(dynamic medicalRecords) {
+    if (medicalRecords is String) {
+      // Handle medical records as text
+      return [
+        Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  medicalRecords.isEmpty
+                      ? 'No medical records available'
+                      : medicalRecords,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[800],
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ];
+    }
+
+    // Fallback for empty or invalid records
+    return [
+      Card(
         margin: const EdgeInsets.only(bottom: 8),
-        child: ListTile(
-          leading: const CircleAvatar(
+        child: const ListTile(
+          leading: CircleAvatar(
             backgroundColor: Colors.orange,
             child: Icon(Icons.medical_services, color: Colors.white),
           ),
-          title: Text(entry.key),
-          subtitle: Text(entry.value.toString()),
+          title: Text('Medical Records'),
+          subtitle: Text('No records available'),
         ),
-      );
-    }).toList();
+      ),
+    ];
   }
 }
