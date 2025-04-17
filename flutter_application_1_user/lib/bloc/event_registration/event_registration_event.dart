@@ -1,8 +1,10 @@
+import 'package:flutter_application_1_user/models/event_model.dart';
+
 abstract class EventRegistrationEvent {}
 
 class RegisterForEvent extends EventRegistrationEvent {
-  final String eventId;
-  RegisterForEvent(this.eventId);
+  final Event event;
+  RegisterForEvent(this.event);
 }
 
 class LoadParticipatedEvents extends EventRegistrationEvent {}

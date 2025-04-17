@@ -15,10 +15,11 @@ class ProcessAdoptionScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF32649B),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('adoptions')
-            .where('status', isEqualTo: 'pending')
-            .snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('adoptions')
+                .where('status', isEqualTo: 'pending')
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -43,36 +44,36 @@ class ProcessAdoptionScreen extends StatelessWidget {
               final userId = adoption['userId'] as String;
 
               return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(userId)
-                    .get(),
+                future:
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .get(),
                 builder: (context, userSnapshot) {
                   if (!userSnapshot.hasData) {
                     return const Card(
-                      child: ListTile(
-                        title: Text('Loading user data...'),
-                      ),
+                      child: ListTile(title: Text('Loading user data...')),
                     );
                   }
 
-                  final userData = userSnapshot.data?.data() as Map<String, dynamic>?;
+                  final userData =
+                      userSnapshot.data?.data() as Map<String, dynamic>?;
 
                   return FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('dogs')
-                        .doc(dogId)
-                        .get(),
+                    future:
+                        FirebaseFirestore.instance
+                            .collection('dogs')
+                            .doc(dogId)
+                            .get(),
                     builder: (context, dogSnapshot) {
                       if (!dogSnapshot.hasData) {
                         return const Card(
-                          child: ListTile(
-                            title: Text('Loading dog data...'),
-                          ),
+                          child: ListTile(title: Text('Loading dog data...')),
                         );
                       }
 
-                      final dogData = dogSnapshot.data?.data() as Map<String, dynamic>?;
+                      final dogData =
+                          dogSnapshot.data?.data() as Map<String, dynamic>?;
 
                       return Card(
                         margin: const EdgeInsets.all(8),
@@ -92,19 +93,21 @@ class ProcessAdoptionScreen extends StatelessWidget {
                                       width: 100,
                                       height: 100,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        width: 100,
-                                        height: 100,
-                                        color: Colors.grey[300],
-                                        child: const Icon(Icons.pets),
-                                      ),
+                                      errorBuilder:
+                                          (_, __, ___) => Container(
+                                            width: 100,
+                                            height: 100,
+                                            color: Colors.grey[300],
+                                            child: const Icon(Icons.pets),
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
                                   // Dog and User Info
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           dogData?['name'] ?? 'Unknown Dog',
@@ -114,7 +117,9 @@ class ProcessAdoptionScreen extends StatelessWidget {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        Text('Breed: ${dogData?['breed'] ?? 'Unknown'}'),
+                                        Text(
+                                          'Breed: ${dogData?['breed'] ?? 'Unknown'}',
+                                        ),
                                         const SizedBox(height: 16),
                                         Text(
                                           'Adopter Information:',
@@ -122,12 +127,20 @@ class ProcessAdoptionScreen extends StatelessWidget {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        Text('Name: ${userData?['fullName'] ?? 'Unknown'}'),
-                                        Text('Email: ${userData?['email'] ?? 'Unknown'}'),
-                                        Text('Phone: ${userData?['phone'] ?? 'Unknown'}'),
+                                        Text(
+                                          'Name: ${userData?['fullName'] ?? 'Unknown'}',
+                                        ),
+                                        Text(
+                                          'Email: ${userData?['email'] ?? 'Unknown'}',
+                                        ),
+                                        Text(
+                                          'Phone: ${userData?['phone'] ?? 'Unknown'}',
+                                        ),
                                         Text(
                                           'Submitted: ${_formatDate(adoption['submittedAt'])}',
-                                          style: TextStyle(color: Colors.grey[600]),
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -139,12 +152,13 @@ class ProcessAdoptionScreen extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   TextButton(
-                                    onPressed: () => _handleAdoptionDecision(
-                                      context,
-                                      adoptionId,
-                                      dogId,
-                                      true,
-                                    ),
+                                    onPressed:
+                                        () => _handleAdoptionDecision(
+                                          context,
+                                          adoptionId,
+                                          dogId,
+                                          true,
+                                        ),
                                     child: const Text(
                                       'Decline',
                                       style: TextStyle(color: Colors.red),
@@ -152,12 +166,13 @@ class ProcessAdoptionScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 16),
                                   ElevatedButton(
-                                    onPressed: () => _handleAdoptionDecision(
-                                      context,
-                                      adoptionId,
-                                      dogId,
-                                      false,
-                                    ),
+                                    onPressed:
+                                        () => _handleAdoptionDecision(
+                                          context,
+                                          adoptionId,
+                                          dogId,
+                                          false,
+                                        ),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.green,
                                     ),
@@ -223,6 +238,20 @@ class ProcessAdoptionScreen extends StatelessWidget {
       // Show loading overlay
       overlay.insert(loadingOverlay);
 
+      // Get adoption document to fetch userId and dogName
+      final adoptionDoc =
+          await FirebaseFirestore.instance
+              .collection('adoptions')
+              .doc(adoptionId)
+              .get();
+      final adoptionData = adoptionDoc.data() as Map<String, dynamic>;
+      final userId = adoptionData['userId'];
+      final dogDoc =
+          await FirebaseFirestore.instance.collection('dogs').doc(dogId).get();
+      final dogData = dogDoc.data() as Map<String, dynamic>;
+      final dogName = dogData['name'] ?? 'the dog';
+      final dogImage = dogData['imageUrl'] ?? null;
+
       // Add adoption status update event
       context.read<AdoptionBloc>().add(
         UpdateAdoptionStatus(
@@ -235,6 +264,21 @@ class ProcessAdoptionScreen extends StatelessWidget {
       // Listen for state changes
       await for (final state in context.read<AdoptionBloc>().stream) {
         if (state is AdoptionSuccess) {
+          // Create notification for the user
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': userId,
+            'dogName': dogName,
+            'dogImage': dogImage, // <-- Add this line
+            'message':
+                isDeclined
+                    ? 'Your adoption request for $dogName was declined.'
+                    : 'Your adoption request for $dogName was approved!',
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'type': 'adoption',
+            'status': isDeclined ? 'declined' : 'approved',
+          });
+
           loadingOverlay.remove();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

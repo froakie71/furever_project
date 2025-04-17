@@ -25,10 +25,11 @@ class SharedDrawer extends StatelessWidget {
         children: [
           UserAccountsDrawerHeader(
             accountName: StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('admins')
-                  .doc(FirebaseAuth.instance.currentUser?.uid)
-                  .snapshots(),
+              stream:
+                  FirebaseFirestore.instance
+                      .collection('admins')
+                      .doc(FirebaseAuth.instance.currentUser?.uid)
+                      .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData && snapshot.data?.exists == true) {
                   final adminData =
@@ -171,6 +172,18 @@ class SharedDrawer extends StatelessWidget {
               );
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.notifications),
+            title: const Text('Notifications'),
+            onTap: () {
+              Navigator.pop(context); // Close the drawer
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (context) => const _AdminNotificationsBottomSheet(),
+              );
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),
@@ -187,6 +200,113 @@ class SharedDrawer extends StatelessWidget {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => AdminSignInView()),
       (route) => false,
+    );
+  }
+}
+
+class _AdminNotificationsBottomSheet extends StatelessWidget {
+  const _AdminNotificationsBottomSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.6,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Notifications',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance
+                      .collection('notifications')
+                      .orderBy('timestamp', descending: true)
+                      .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text('Error loading notifications'),
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final notifications =
+                    (snapshot.data?.docs ?? []).where((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      // Show admin-relevant notifications only
+                      if (data['type'] == 'donation') {
+                        return !(data['message']
+                                ?.toString()
+                                .toLowerCase()
+                                .startsWith('you have donated') ??
+                            false);
+                      }
+                      return data['type'] == 'event_join' ||
+                          data['type'] == 'new_user' ||
+                          data['type'] ==
+                              'adoption_request'; // <-- Add this line
+                    }).toList();
+                if (notifications.isEmpty) {
+                  return const Center(child: Text('No notifications'));
+                }
+                return ListView.builder(
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification =
+                        notifications[index].data() as Map<String, dynamic>;
+                    return ListTile(
+                      leading: Icon(
+                        notification['type'] == 'new_user'
+                            ? Icons.person_add
+                            : notification['type'] == 'event_join'
+                            ? Icons.event_available
+                            : notification['type'] == 'donation'
+                            ? Icons.monetization_on
+                            : Icons.notifications,
+                        color:
+                            notification['type'] == 'new_user'
+                                ? Colors.green
+                                : notification['type'] == 'event_join'
+                                ? Colors.orange
+                                : notification['type'] == 'donation'
+                                ? Colors.blue
+                                : null,
+                      ),
+                      title: Text(notification['message'] ?? 'No message'),
+                      subtitle:
+                          notification['type'] == 'donation'
+                              ? Text(
+                                'Donor: '
+                                '${(notification['username'] != null && notification['username'].toString().trim().isNotEmpty) ? notification['username'] : (notification['email'] != null && notification['email'].toString().contains('@') ? notification['email'].toString().split('@')[0] + '@' : "Unknown")}\n'
+                                'Time: ${notification['timestamp'] != null ? (notification['timestamp'] as Timestamp).toDate().toString() : ""}',
+                                style: const TextStyle(fontSize: 12),
+                              )
+                              : Text(
+                                notification['timestamp'] != null
+                                    ? (notification['timestamp'] as Timestamp)
+                                        .toDate()
+                                        .toString()
+                                    : '',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

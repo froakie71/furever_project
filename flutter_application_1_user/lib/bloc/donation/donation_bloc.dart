@@ -155,6 +155,39 @@ class DonationBloc extends Bloc<DonationEvent, DonationState> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      // Fetch username from users collection
+      String? username;
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        if (userData != null &&
+            userData['username'] != null &&
+            userData['username'].toString().trim().isNotEmpty) {
+          username = userData['username'];
+        }
+      }
+
+      // User notification (for the user themselves)
+      await _createDonationNotification(
+        userId: user.uid,
+        userEmail: user.email ?? '',
+        amount: event.amount,
+        imageUrl: imageUrl,
+      );
+
+      // Admin notification (for the admin panel)
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'type': 'donation',
+        'message':
+            '${username ?? (user.email != null && user.email!.contains('@') ? user.email!.split('@')[0] + '@' : "A user")} donated ₱${event.amount}.',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'userId': user.uid,
+        'username': username,
+        'email': user.email,
+        'amount': event.amount,
+      });
+
       // Wait for both operations to complete
       await Future.wait([
         _onLoadDonations(LoadDonations(), emit),
@@ -216,5 +249,24 @@ class DonationBloc extends Bloc<DonationEvent, DonationState> {
     } catch (e) {
       emit(DonationError(e.toString()));
     }
+  }
+
+  Future<void> _createDonationNotification({
+    required String userId,
+    required String userEmail,
+    required double amount,
+    String? imageUrl,
+  }) async {
+    await _firestore.collection('notifications').add({
+      'userId': userId,
+      'eventId': null,
+      'eventTitle': null,
+      'eventImage': imageUrl,
+      'message': 'You have donated ₱${amount.toStringAsFixed(2)}',
+      'timestamp': FieldValue.serverTimestamp(),
+      'isRead': false,
+      'type': 'donation',
+      'userEmail': userEmail,
+    });
   }
 }

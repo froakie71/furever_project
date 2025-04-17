@@ -87,6 +87,45 @@ class AdoptionBloc extends Bloc<AdoptionEvent, AdoptionState> {
       });
 
       await batch.commit();
+
+      // Fetch username from users collection
+      String? username;
+      String? email;
+      final userDoc =
+          await _firestore.collection('users').doc(event.userId).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        if (userData != null) {
+          if (userData['username'] != null &&
+              userData['username'].toString().trim().isNotEmpty) {
+            username = userData['username'];
+          }
+          if (userData['email'] != null &&
+              userData['email'].toString().trim().isNotEmpty) {
+            email = userData['email'];
+          }
+        }
+      }
+
+      // Fetch dog name for notification (optional, if not already available)
+      final dogDoc = await _firestore.collection('dogs').doc(event.dogId).get();
+      final dogName =
+          dogDoc.exists ? (dogDoc.data()?['name'] ?? 'the dog') : 'the dog';
+
+      // Admin notification (for the admin panel)
+      await _firestore.collection('notifications').add({
+        'type': 'adoption_request',
+        'message':
+            '${(username != null && username.trim().isNotEmpty) ? username : (email != null && email.contains('@') ? email.split('@')[0] + '@' : "A user")} wants to adopt the dog: $dogName',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'userId': event.userId,
+        'username': username,
+        'email': email,
+        'dogId': event.dogId,
+        'dogName': dogName,
+      });
+
       emit(AdoptionSuccess());
     } catch (e) {
       emit(AdoptionError(e.toString()));

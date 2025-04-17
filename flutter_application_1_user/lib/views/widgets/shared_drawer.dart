@@ -11,6 +11,7 @@ import 'package:flutter_application_1_user/views/screens/event_screen.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_application_1_user/views/screens/medical_services_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
+import 'package:flutter_application_1_user/views/widgets/notifications_bottom_sheet.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SharedDrawer extends StatefulWidget {
@@ -35,6 +36,13 @@ class _SharedDrawerState extends State<SharedDrawer> {
     if (user != null) {
       _userStream = _firestore.collection('users').doc(user.uid).snapshots();
     }
+  }
+
+  void _showNotifications(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => NotificationsBottomSheet(),
+    );
   }
 
   @override
@@ -81,6 +89,65 @@ class _SharedDrawerState extends State<SharedDrawer> {
                           )
                           : null,
                 ),
+                otherAccountsPictures: [
+                  StreamBuilder<QuerySnapshot>(
+                    stream:
+                        FirebaseFirestore.instance
+                            .collection('notifications')
+                            .where(
+                              'userId',
+                              isEqualTo: FirebaseAuth.instance.currentUser?.uid,
+                            )
+                            .where('isRead', isEqualTo: false)
+                            .snapshots(),
+                    builder: (context, snapshot) {
+                      int unreadCount = 0;
+                      if (snapshot.hasData) {
+                        unreadCount = snapshot.data!.docs.length;
+                      }
+                      return Stack(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.notifications,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _showNotifications(context);
+                            },
+                          ),
+                          if (unreadCount > 0)
+                            Positioned(
+                              right: 4,
+                              top: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Text(
+                                  '$unreadCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
                 accountName: Text(
                   userName,
                   style: const TextStyle(
@@ -160,7 +227,7 @@ class _SharedDrawerState extends State<SharedDrawer> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>  MedicalServicesScreen(),
+                  builder: (context) => MedicalServicesScreen(),
                 ),
               );
             },
@@ -191,6 +258,101 @@ class _SharedDrawerState extends State<SharedDrawer> {
           ),
         ],
       ),
+    );
+  }
+}
+
+void _showNotifications(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => NotificationsBottomSheet(),
+  );
+}
+
+class MyAppBarWithBadge extends StatefulWidget implements PreferredSizeWidget {
+  @override
+  final Size preferredSize;
+  MyAppBarWithBadge({Key? key})
+    : preferredSize = const Size.fromHeight(kToolbarHeight),
+      super(key: key);
+
+  @override
+  State<MyAppBarWithBadge> createState() => _MyAppBarWithBadgeState();
+}
+
+class _MyAppBarWithBadgeState extends State<MyAppBarWithBadge> {
+  int _unreadCount = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      // ...other AppBar properties...
+      actions: [
+        StreamBuilder<QuerySnapshot>(
+          stream:
+              FirebaseFirestore.instance
+                  .collection('notifications')
+                  .where(
+                    'userId',
+                    isEqualTo: FirebaseAuth.instance.currentUser?.uid,
+                  )
+                  .where('isRead', isEqualTo: false)
+                  .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              _unreadCount = snapshot.data!.docs.length;
+            }
+            return IconButton(
+              icon: Stack(
+                children: [
+                  const Icon(Icons.notifications, color: Colors.white),
+                  if (_unreadCount > 0)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '$_unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              onPressed: () {
+                setState(() {
+                  _unreadCount = 0; // Instantly hide badge
+                });
+                showModalBottomSheet(
+                  context: context,
+                  builder:
+                      (context) => NotificationsBottomSheet(
+                        onOpened: () {
+                          setState(() {
+                            _unreadCount = 0;
+                          });
+                        },
+                      ),
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }

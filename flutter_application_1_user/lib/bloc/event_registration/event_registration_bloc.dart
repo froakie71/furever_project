@@ -1,24 +1,23 @@
 // Bloc
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_1_user/bloc/event_registration/event_registration_event.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'event_registration_state.dart';
+import 'package:flutter_application_1_user/models/event_model.dart';
+import 'package:flutter_application_1_user/bloc/event_registration/event_registration_event.dart';
+import 'package:flutter_application_1_user/bloc/event_registration/event_registration_state.dart';
 
 class EventRegistrationBloc
     extends Bloc<EventRegistrationEvent, EventRegistrationState> {
-  final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
-  Set<String> _registeredEventIds =
-      {}; // Add this line to cache the registered events
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  Set<String> _registeredEventIds = {};
 
   EventRegistrationBloc() : super(EventRegistrationInitial()) {
     on<RegisterForEvent>(_onRegisterForEvent);
     on<LoadParticipatedEvents>(_onLoadParticipatedEvents);
     on<CheckRegisteredEvents>(_onCheckRegisteredEvents);
 
-    // Initialize by checking registered events
     add(CheckRegisteredEvents());
   }
 
@@ -27,31 +26,97 @@ class EventRegistrationBloc
     Emitter<EventRegistrationState> emit,
   ) async {
     try {
+      // Start with loading state
       emit(EventRegistrationLoading());
 
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('User not authenticated');
-
-      // Check if already registered
-      if (_registeredEventIds.contains(event.eventId)) {
-        emit(EventRegistrationError('Already registered for this event'));
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        emit(EventRegistrationFailure(error: 'User not logged in'));
         return;
       }
 
-      await _firestore.collection('event_registrations').add({
-        'eventId': event.eventId,
-        'userId': user.uid,
-        'userEmail': user.email,
-        'registeredAt': FieldValue.serverTimestamp(),
-      });
+      // Check if already registered in memory
+      if (_registeredEventIds.contains(event.event.id)) {
+        emit(
+          EventRegistrationFailure(error: 'Already registered for this event'),
+        );
+        return;
+      }
 
-      _registeredEventIds.add(event.eventId); // Add to cached set
-      emit(EventRegistrationSuccess());
+      // Check if registration exists in Firestore
+      final existingRegistration =
+          await _firestore
+              .collection('event_registrations')
+              .where('eventId', isEqualTo: event.event.id)
+              .where('userId', isEqualTo: currentUser.uid)
+              .get();
 
-      // Refresh registered events list
-      add(CheckRegisteredEvents());
+      if (existingRegistration.docs.isNotEmpty) {
+        emit(
+          EventRegistrationFailure(error: 'Already registered for this event'),
+        );
+        return;
+      }
+
+      // Create registration document
+      final registration = await _firestore
+          .collection('event_registrations')
+          .add({
+            'eventId': event.event.id,
+            'eventTitle': event.event.title,
+            'userId': currentUser.uid,
+            'userEmail': currentUser.email,
+            'registeredAt': FieldValue.serverTimestamp(),
+          });
+
+      if (registration.id.isNotEmpty) {
+        _registeredEventIds.add(event.event.id);
+
+        // Create notification
+        await _createEventNotification(
+          event.event.id,
+          event.event.title,
+          event.event.imageUrl,
+        );
+
+        // Fetch username from users collection
+        String? username;
+        final userDoc =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(currentUser.uid)
+                .get();
+        if (userDoc.exists) {
+          final userData = userDoc.data();
+          if (userData != null &&
+              userData['username'] != null &&
+              userData['username'].toString().trim().isNotEmpty) {
+            username = userData['username'];
+          }
+        }
+
+        // Admin notification (for the admin panel)
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'type': 'event_join',
+          'message':
+              '${username ?? (currentUser.email != null && currentUser.email!.contains('@') ? currentUser.email!.split('@')[0] + '@' : "A user")} joined the event: ${event.event.title}',
+          'timestamp': FieldValue.serverTimestamp(),
+          'isRead': false,
+          'userId': currentUser.uid,
+          'username': username,
+          'email': currentUser.email,
+          'eventId': event.event.id,
+          'eventTitle': event.event.title,
+        });
+
+        emit(EventRegistrationSuccess());
+        // Do NOT emit RegisteredEventsLoaded here!
+        // Instead, trigger CheckRegisteredEvents from the UI after showing the SnackBar
+      } else {
+        emit(EventRegistrationFailure(error: 'Failed to register for event'));
+      }
     } catch (e) {
-      emit(EventRegistrationError(e.toString()));
+      emit(EventRegistrationFailure(error: e.toString()));
     }
   }
 
@@ -61,7 +126,10 @@ class EventRegistrationBloc
   ) async {
     try {
       final user = _auth.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        emit(EventRegistrationFailure(error: 'User not logged in'));
+        return;
+      }
 
       final registrations =
           await _firestore
@@ -88,35 +156,75 @@ class EventRegistrationBloc
       emit(EventRegistrationLoading());
 
       final user = _auth.currentUser;
-      if (user == null) throw Exception('User not authenticated');
+      if (user == null) {
+        emit(EventRegistrationFailure(error: 'User not logged in'));
+        return;
+      }
 
       final registrations =
           await _firestore
               .collection('event_registrations')
               .where('userId', isEqualTo: user.uid)
+              .orderBy('registeredAt', descending: true)
               .get();
 
       final List<Map<String, dynamic>> participatedEvents = [];
 
       for (var reg in registrations.docs) {
+        final eventData = reg.data();
         final eventDoc =
             await _firestore
                 .collection('events')
-                .doc(reg.data()['eventId'])
+                .doc(eventData['eventId'])
                 .get();
 
         if (eventDoc.exists) {
           participatedEvents.add({
             ...eventDoc.data()!,
             'id': eventDoc.id,
-            'registeredAt': reg.data()['registeredAt'],
+            'registeredAt': eventData['registeredAt'],
           });
         }
       }
 
       emit(ParticipatedEventsLoaded(participatedEvents));
     } catch (e) {
-      emit(EventRegistrationError(e.toString()));
+      emit(EventRegistrationFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _createEventNotification(
+    String eventId,
+    String eventTitle,
+    String eventImage,
+  ) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      // First check if notification already exists
+      final existingNotifications =
+          await _firestore
+              .collection('notifications')
+              .where('userId', isEqualTo: user.uid)
+              .where('eventId', isEqualTo: eventId)
+              .where('type', isEqualTo: 'event_registration')
+              .get();
+
+      if (existingNotifications.docs.isEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': user.uid,
+          'eventId': eventId,
+          'eventTitle': eventTitle,
+          'eventImage': eventImage,
+          'message': 'You have registered for $eventTitle',
+          'timestamp': FieldValue.serverTimestamp(),
+          'isRead': false,
+          'type': 'event_registration',
+        });
+      }
+    } catch (e) {
+      debugPrint('Error creating notification: $e');
     }
   }
 }

@@ -9,6 +9,7 @@ import 'package:flutter_application_1_user/views/screens/donation_screen.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/screens/participated_events_screen.dart';
+import 'package:flutter_application_1_user/views/widgets/notifications_bottom_sheet.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1_user/models/event_model.dart';
@@ -20,7 +21,6 @@ class EventScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Load registered events when screen is first built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = context.read<EventRegistrationBloc>().state;
       if (state is! RegisteredEventsLoaded) {
@@ -28,7 +28,20 @@ class EventScreen extends StatelessWidget {
       }
     });
 
-    return BlocBuilder<EventRegistrationBloc, EventRegistrationState>(
+    return BlocConsumer<EventRegistrationBloc, EventRegistrationState>(
+      listenWhen: (previous, current) => current is EventRegistrationSuccess,
+      listener: (context, state) {
+        if (state is EventRegistrationSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Successfully registered for the event!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Refresh registered events after showing the SnackBar
+          context.read<EventRegistrationBloc>().add(CheckRegisteredEvents());
+        }
+      },
       builder: (context, registrationState) {
         Set<String> registeredEventIds = {};
         if (registrationState is RegisteredEventsLoaded) {
@@ -54,29 +67,27 @@ class EventScreen extends StatelessWidget {
                 icon: const Icon(Icons.event_available),
                 onPressed: () async {
                   context.read<EventRegistrationBloc>().add(
-                        LoadParticipatedEvents(),
-                      );
+                    LoadParticipatedEvents(),
+                  );
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<EventRegistrationBloc>(),
-                        child: const ParticipatedEventsScreen(),
-                      ),
+                      builder:
+                          (_) => BlocProvider.value(
+                            value: context.read<EventRegistrationBloc>(),
+                            child: const ParticipatedEventsScreen(),
+                          ),
                     ),
                   );
-                  // Refresh the registration status when returning
                   if (context.mounted) {
                     context.read<EventRegistrationBloc>().add(
-                          CheckRegisteredEvents(),
-                        );
+                      CheckRegisteredEvents(),
+                    );
                   }
                 },
               ),
               Padding(
-                padding: const EdgeInsets.only(
-                  right: 16.0,
-                ), // Adjust the value as needed
+                padding: const EdgeInsets.only(right: 16.0),
                 child: IconButton(
                   icon: const Icon(Icons.menu, color: Colors.white),
                   onPressed: () {
@@ -88,10 +99,11 @@ class EventScreen extends StatelessWidget {
           ),
           endDrawer: const SharedDrawer(),
           body: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('events')
-                .orderBy('date')
-                .snapshots(),
+            stream:
+                FirebaseFirestore.instance
+                    .collection('events')
+                    .orderBy('date')
+                    .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));
@@ -105,10 +117,26 @@ class EventScreen extends StatelessWidget {
                 return const Center(child: Text('No events available'));
               }
 
-              final events = snapshot.data!.docs.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                return Event.fromFirestore(data, doc.id);
-              }).toList();
+              final events =
+                  snapshot.data!.docs
+                      .map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return Event.fromFirestore(data, doc.id);
+                      })
+                      .where(
+                        (event) => !registeredEventIds.contains(event.id),
+                      ) // Filter out registered events
+                      .toList();
+
+              if (events.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No upcoming events available\nYou\'ve registered for all current events!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Color(0xFF32649B)),
+                  ),
+                );
+              }
 
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -225,55 +253,33 @@ class EventScreen extends StatelessWidget {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: BlocConsumer<EventRegistrationBloc,
-                                        EventRegistrationState>(
-                                      listener: (context, state) {
-                                        if (state is EventRegistrationSuccess) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Successfully registered for the event!',
-                                              ),
-                                              backgroundColor: Colors.green,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      builder: (context, state) {
-                                        final isRegistered = state
-                                                is RegisteredEventsLoaded &&
-                                            state.registeredEventIds.contains(
-                                              event.id,
-                                            );
-
-                                        return ElevatedButton(
-                                          onPressed: isRegistered
+                                    child: ElevatedButton(
+                                      onPressed:
+                                          registeredEventIds.contains(event.id)
                                               ? null
                                               : () {
-                                                  context
-                                                      .read<
-                                                          EventRegistrationBloc>()
-                                                      .add(
-                                                        RegisterForEvent(
-                                                          event.id,
-                                                        ),
-                                                      );
-                                                },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: isRegistered
+                                                context
+                                                    .read<
+                                                      EventRegistrationBloc
+                                                    >()
+                                                    .add(
+                                                      RegisterForEvent(event),
+                                                    );
+                                              },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            registeredEventIds.contains(
+                                                  event.id,
+                                                )
                                                 ? Colors.grey
                                                 : const Color(0xFF32649B),
-                                            foregroundColor: Colors.white,
-                                          ),
-                                          child: Text(
-                                            isRegistered
-                                                ? 'Registered'
-                                                : 'Register',
-                                          ),
-                                        );
-                                      },
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: Text(
+                                        registeredEventIds.contains(event.id)
+                                            ? 'Registered'
+                                            : 'Register',
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -311,37 +317,10 @@ class EventScreen extends StatelessWidget {
     return months[month - 1];
   }
 
-  void _registerForEvent(BuildContext context, Event event) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in to register for events')),
-      );
-      return;
-    }
-
-    try {
-      await FirebaseFirestore.instance.collection('event_registrations').add({
-        'eventId': event.id,
-        'eventTitle': event.title,
-        'userId': currentUser.uid,
-        'userEmail': currentUser.email,
-        'registeredAt': FieldValue.serverTimestamp(),
-      });
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Successfully registered for the event!'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error registering for event: $e')),
-        );
-      }
-    }
+  void _showNotifications(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => NotificationsBottomSheet(),
+    );
   }
 }

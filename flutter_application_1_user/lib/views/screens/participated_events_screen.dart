@@ -20,7 +20,9 @@ class ParticipatedEventsScreen extends StatelessWidget {
           if (state is EventRegistrationLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
+          if (state is EventRegistrationFailure) {
+            return Center(child: Text(state.error)); // Show the real error
+          }
           if (state is ParticipatedEventsLoaded) {
             if (state.events.isEmpty) {
               return const Center(
