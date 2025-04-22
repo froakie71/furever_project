@@ -12,7 +12,12 @@
           "package_name": "com.example.flutter_application_1"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBjWiyow580TwHUIJz9VlXUgBIap6-1kO0"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "592166870653-p9u3lpgvvhhokicvlue2qanjvue84a0f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fureverHomeProject"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +48,12 @@
           "package_name": "com.example.flutter_application_123232"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBjWiyow580TwHUIJz9VlXUgBIap6-1kO0"
@@ -39,7 +61,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "592166870653-p9u3lpgvvhhokicvlue2qanjvue84a0f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fureverHomeProject"
+              }
+            }
+          ]
         }
       }
     },
@@ -50,7 +84,12 @@
           "package_name": "com.example.flutter_application_1_user"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBjWiyow580TwHUIJz9VlXUgBIap6-1kO0"
@@ -58,7 +97,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "592166870653-p9u3lpgvvhhokicvlue2qanjvue84a0f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fureverHomeProject"
+              }
+            }
+          ]
         }
       }
     },
@@ -69,7 +120,12 @@
           "package_name": "com.example.furever_home_admin"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBjWiyow580TwHUIJz9VlXUgBIap6-1kO0"
@@ -77,7 +133,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "592166870653-p9u3lpgvvhhokicvlue2qanjvue84a0f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fureverHomeProject"
+              }
+            }
+          ]
         }
       }
     },
@@ -88,7 +156,12 @@
           "package_name": "com.example.furever_home_project"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBjWiyow580TwHUIJz9VlXUgBIap6-1kO0"
@@ -96,7 +169,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "592166870653-ua1gg0vl4d657q0jepaafffs2j9ardjg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "592166870653-p9u3lpgvvhhokicvlue2qanjvue84a0f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fureverHomeProject"
+              }
+            }
+          ]
         }
       }
     }

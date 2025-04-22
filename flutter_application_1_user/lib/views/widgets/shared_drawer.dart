@@ -262,12 +262,6 @@ class _SharedDrawerState extends State<SharedDrawer> {
   }
 }
 
-void _showNotifications(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    builder: (context) => NotificationsBottomSheet(),
-  );
-}
 
 class MyAppBarWithBadge extends StatefulWidget implements PreferredSizeWidget {
   @override

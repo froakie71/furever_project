@@ -622,9 +622,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         const SizedBox(height: 10),
                         SizedBox(
                           child: InkWell(
-                            onTap: () {
-                              // Add your Google sign in logic here
-                            },
+                            onTap:
+                                state is AuthLoading
+                                    ? null
+                                    : () {
+                                      context.read<AuthBloc>().add(
+                                        GoogleSignInRequested(),
+                                      );
+                                    },
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(

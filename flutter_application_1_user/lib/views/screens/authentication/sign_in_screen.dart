@@ -24,6 +24,8 @@ class SignInScreen extends StatelessWidget {
           );
         }
         if (state is AuthError) {
+          // Print the error to the debug console
+          debugPrint('AuthError: ${state.error}');
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(state.error)));

@@ -432,21 +432,21 @@ class DogScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _showAdoptionForm(context, dog);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Adopt Me'),
-                  ),
-                ),
+                // SizedBox(
+                //   width: double.infinity,
+                //   child: ElevatedButton(
+                //     onPressed: () {
+                //       Navigator.pop(context);
+                //       _showAdoptionForm(context, dog);
+                //     },
+                //     style: ElevatedButton.styleFrom(
+                //       backgroundColor: Colors.orange,
+                //       foregroundColor: Colors.white,
+                //       padding: const EdgeInsets.symmetric(vertical: 16),
+                //     ),
+                //     child: const Text('Adopt Me'),
+                //   ),
+                // ),
               ],
             ),
           ),
