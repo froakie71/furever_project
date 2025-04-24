@@ -47,9 +47,9 @@ class NotificationsBottomSheet extends StatelessWidget {
                     batch.update(doc.reference, {'isRead': true});
                   }
                   await batch.commit();
-                  Navigator.of(
-                    context,
-                  ).pop(); // This will close the sheet and update the badge
+                  if (context.mounted) {
+                    Navigator.of(context).pop(); // Only close if still mounted
+                  }
                 },
                 child: const Text('Mark all as read'),
               ),
@@ -81,13 +81,23 @@ class NotificationsBottomSheet extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                print(
+                  'Current user UID: ${FirebaseAuth.instance.currentUser?.uid}',
+                );
+
                 final notifications =
                     (snapshot.data?.docs ?? []).where((doc) {
                       final data = doc.data() as Map<String, dynamic>;
-                      // Only show notifications meant for the user
-                      // Exclude admin notifications (event_join, new_user, etc.)
-                      return data['type'] != 'event_join' &&
-                          data['type'] != 'new_user';
+                      // Only show notifications for the current user and user types
+                      return data['userId'] ==
+                              FirebaseAuth.instance.currentUser?.uid &&
+                          (data['type'] == 'adoption_update' ||
+                              data['type'] == 'donation_user' ||
+                              data['type'] == 'checkup_approved' ||
+                              data['type'] == 'checkup_disapproved' ||
+                              data['type'] == 'event_registration' ||
+                              data['type'] ==
+                                  'adoption'); // add other user types as needed
                     }).toList();
                 if (notifications.isEmpty) {
                   return const Center(child: Text('No notifications'));
@@ -98,11 +108,19 @@ class NotificationsBottomSheet extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final notification =
                         notifications[index].data() as Map<String, dynamic>;
-                    final isAdoption = notification['type'] == 'adoption';
-                    final imageUrl =
-                        isAdoption
-                            ? notification['dogImage']
-                            : notification['eventImage'];
+                    final type = notification['type'];
+                    String title = '';
+                    String message = notification['message'] ?? '';
+
+                    if (type == 'checkup_approved') {
+                      title = 'Checkup Approved';
+                    } else if (type == 'checkup_disapproved') {
+                      title = 'Checkup Disapproved';
+                    } else if (type == 'adoption') {
+                      title = 'Adoption Update';
+                    } else {
+                      title = notification['eventTitle'] ?? 'Event';
+                    }
 
                     return Card(
                       elevation: 2,
@@ -111,36 +129,26 @@ class NotificationsBottomSheet extends StatelessWidget {
                         vertical: 4,
                       ),
                       child: ListTile(
-                        leading:
-                            imageUrl != null && imageUrl != ''
-                                ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    imageUrl,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(Icons.pets, size: 40);
-                                    },
-                                  ),
-                                )
-                                : Icon(
-                                  isAdoption ? Icons.pets : Icons.event,
-                                  size: 40,
-                                ),
-                        title: Text(
-                          isAdoption
-                              ? 'Adoption Update'
-                              : (notification['eventTitle'] ?? 'Event'),
+                        leading: Icon(
+                          type == 'checkup_approved'
+                              ? Icons.verified
+                              : type == 'checkup_disapproved'
+                              ? Icons.cancel
+                              : Icons.notifications,
+                          color:
+                              type == 'checkup_approved'
+                                  ? Colors.green
+                                  : type == 'checkup_disapproved'
+                                  ? Colors.red
+                                  : null,
+                          size: 40,
                         ),
-                        subtitle: Text(notification['message'] ?? ''),
+                        title: Text(title),
+                        subtitle: Text(message),
                         onTap: () async {
                           await notifications[index].reference.update({
                             'isRead': true,
                           });
-                          // Optionally close the bottom sheet:
-                          // Navigator.of(context).pop();
                         },
                       ),
                     );
@@ -153,5 +161,4 @@ class NotificationsBottomSheet extends StatelessWidget {
       ),
     );
   }
-
 }

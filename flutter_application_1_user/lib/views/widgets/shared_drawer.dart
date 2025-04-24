@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_bloc.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_event.dart';
 import 'package:flutter_application_1_user/views/screens/adopted_dogs_screen.dart';
-import 'package:flutter_application_1_user/views/screens/authentication/sign_in_screen.dart';
+import 'package:flutter_application_1_user/views/screens/sign_in_screen.dart';
 import 'package:flutter_application_1_user/views/screens/dog_screen.dart';
 import 'package:flutter_application_1_user/views/screens/donation_screen.dart';
 import 'package:flutter_application_1_user/views/screens/event_screen.dart';

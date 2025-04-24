@@ -40,18 +40,36 @@ class ClientsView extends StatelessWidget {
                 elevation: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage:
-                        userData['profileImage'] != null &&
-                                userData['profileImage'].toString().isNotEmpty
-                            ? NetworkImage(userData['profileImage'])
-                            : null,
-                    child:
-                        userData['profileImage'] == null ||
-                                userData['profileImage'].toString().isEmpty
-                            ? const Icon(Icons.person)
-                            : null,
-                  ),
+                  leading: (userData['profileImage'] != null &&
+                          userData['profileImage'].toString().isNotEmpty)
+                      ? CircleAvatar(
+                          radius: 24,
+                          backgroundImage:
+                              NetworkImage(userData['profileImage']),
+                          backgroundColor: Colors.transparent, // No color for Google images!
+                        )
+                      : CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Colors.grey[200],
+                          child: Text(
+                            (userData['fullName'] != null &&
+                                        userData['fullName']
+                                            .toString()
+                                            .isNotEmpty
+                                    ? userData['fullName'][0]
+                                    : userData['email'] != null &&
+                                        userData['email']
+                                            .toString()
+                                            .isNotEmpty
+                                    ? userData['email'][0]
+                                    : '?')
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
                   title: Text(
                     userData['fullName'] ?? 'No Name',
                     style: const TextStyle(
@@ -97,15 +115,29 @@ class ClientsView extends StatelessWidget {
                   if (userData['profileImage'] != null &&
                       userData['profileImage'].toString().isNotEmpty)
                     Center(
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: NetworkImage(userData['profileImage']),
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundImage: NetworkImage(userData['profileImage']),
+                        backgroundColor: Colors.transparent, // No color for Google images!
+                      ),
+                    )
+                  else
+                    Center(
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.grey[200],
+                        child: Text(
+                          (userData['fullName'] != null &&
+                                      userData['fullName'].toString().isNotEmpty
+                                  ? userData['fullName'][0]
+                                  : userData['email'] != null &&
+                                      userData['email'].toString().isNotEmpty
+                                  ? userData['email'][0]
+                                  : '?')
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 40,
                           ),
                         ),
                       ),

@@ -7,10 +7,11 @@ import 'package:flutter_application_1_user/bloc/auth/auth_bloc.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_state.dart';
 import 'package:flutter_application_1_user/bloc/donation/donation_bloc.dart';
 import 'package:flutter_application_1_user/bloc/event_registration/event_registration_bloc.dart';
+import 'package:flutter_application_1_user/bloc/schedule_checkup/schedule_checkup_bloc.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_application_1_user/views/screens/participated_events_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_application_1_user/views/screens/authentication/sign_in_screen.dart';
+import 'package:flutter_application_1_user/views/screens/sign_in_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -36,6 +37,7 @@ void main() async {
         BlocProvider(create: (context) => AdoptionBloc()),
         BlocProvider(create: (context) => EventRegistrationBloc()),
         BlocProvider(create: (context) => DonationBloc()),
+        BlocProvider(create: (context) => ScheduleCheckupBloc()),
       ],
       child: const MyApp(),
     ),

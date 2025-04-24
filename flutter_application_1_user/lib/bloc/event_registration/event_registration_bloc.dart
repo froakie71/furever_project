@@ -72,7 +72,7 @@ class EventRegistrationBloc
       if (registration.id.isNotEmpty) {
         _registeredEventIds.add(event.event.id);
 
-        // Create notification
+        // Create notification (for the user)
         await _createEventNotification(
           event.event.id,
           event.event.title,
@@ -102,7 +102,6 @@ class EventRegistrationBloc
               '${username ?? (currentUser.email != null && currentUser.email!.contains('@') ? currentUser.email!.split('@')[0] + '@' : "A user")} joined the event: ${event.event.title}',
           'timestamp': FieldValue.serverTimestamp(),
           'isRead': false,
-          'userId': currentUser.uid,
           'username': username,
           'email': currentUser.email,
           'eventId': event.event.id,

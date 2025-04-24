@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/views/screens/schedule_checkup/admin_schedule_checkup_screen.dart';
+import 'package:intl/intl.dart';
 import '../screens/AdoptedDogs/adopted.dart';
 import '../screens/Clients/clients.dart';
 import '../screens/Dogs/dogslist.dart';
@@ -184,6 +186,19 @@ class SharedDrawer extends StatelessWidget {
               );
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.schedule), // Schedule/check icon
+            title: const Text('Schedule Checkups'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminScheduleCheckupScreen(),
+                ),
+              );
+            },
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),
@@ -232,73 +247,71 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
                       .orderBy('timestamp', descending: true)
                       .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('Error loading notifications'),
-                  );
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final notifications =
-                    (snapshot.data?.docs ?? []).where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      // Show admin-relevant notifications only
-                      if (data['type'] == 'donation') {
-                        return !(data['message']
-                                ?.toString()
-                                .toLowerCase()
-                                .startsWith('you have donated') ??
-                            false);
-                      }
-                      return data['type'] == 'event_join' ||
-                          data['type'] == 'new_user' ||
-                          data['type'] ==
-                              'adoption_request'; // <-- Add this line
-                    }).toList();
+                final notifications = (snapshot.data?.docs ?? []).where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  // Only show admin notifications
+                  return data['type'] == 'adoption_admin' ||
+                         data['type'] == 'donation_admin' ||
+                         data['type'] == 'event_join';
+                }).toList();
+
                 if (notifications.isEmpty) {
                   return const Center(child: Text('No notifications'));
                 }
+
                 return ListView.builder(
                   itemCount: notifications.length,
                   itemBuilder: (context, index) {
-                    final notification =
+                    final notif =
                         notifications[index].data() as Map<String, dynamic>;
-                    return ListTile(
-                      leading: Icon(
-                        notification['type'] == 'new_user'
-                            ? Icons.person_add
-                            : notification['type'] == 'event_join'
-                            ? Icons.event_available
-                            : notification['type'] == 'donation'
-                            ? Icons.monetization_on
-                            : Icons.notifications,
-                        color:
-                            notification['type'] == 'new_user'
-                                ? Colors.green
-                                : notification['type'] == 'event_join'
-                                ? Colors.orange
-                                : notification['type'] == 'donation'
-                                ? Colors.blue
-                                : null,
+                    final type = notif['type'];
+                    IconData icon;
+                    Color iconColor;
+
+                    if (type == 'event_join') {
+                      icon = Icons.event_available;
+                      iconColor = Colors.blue;
+                    } else if (type == 'adoption_admin') {
+                      icon = Icons.pets;
+                      iconColor = Colors.orange;
+                    } else if (type == 'donation_admin') {
+                      icon = Icons.volunteer_activism;
+                      iconColor = Colors.purple;
+                    } else {
+                      icon = Icons.notifications;
+                      iconColor = Colors.grey;
+                    }
+
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
                       ),
-                      title: Text(notification['message'] ?? 'No message'),
-                      subtitle:
-                          notification['type'] == 'donation'
-                              ? Text(
-                                'Donor: '
-                                '${(notification['username'] != null && notification['username'].toString().trim().isNotEmpty) ? notification['username'] : (notification['email'] != null && notification['email'].toString().contains('@') ? notification['email'].toString().split('@')[0] + '@' : "Unknown")}\n'
-                                'Time: ${notification['timestamp'] != null ? (notification['timestamp'] as Timestamp).toDate().toString() : ""}',
-                                style: const TextStyle(fontSize: 12),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: iconColor.withOpacity(0.15),
+                          child: Icon(icon, color: iconColor),
+                        ),
+                        title: Text(
+                          notif['message'] ?? '',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          notif['timestamp'] != null
+                              ? DateFormat('yyyy-MM-dd – kk:mm').format(
+                                (notif['timestamp'] as Timestamp).toDate(),
                               )
-                              : Text(
-                                notification['timestamp'] != null
-                                    ? (notification['timestamp'] as Timestamp)
-                                        .toDate()
-                                        .toString()
-                                    : '',
-                                style: const TextStyle(fontSize: 12),
-                              ),
+                              : '',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
                     );
                   },
                 );
@@ -309,4 +322,87 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+class NotificationsScreen extends StatelessWidget {
+  const NotificationsScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notifications')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream:
+            FirebaseFirestore.instance
+                .collection('notifications')
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
+          final notifications = snapshot.data!.docs;
+          return ListView.builder(
+            itemCount: notifications.length,
+            itemBuilder: (context, index) {
+              final notif = notifications[index].data() as Map<String, dynamic>;
+              if (notif['type'] == 'checkup_schedule') {
+                return FutureBuilder<DocumentSnapshot>(
+                  future:
+                      FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(notif['userId'])
+                          .get(),
+                  builder: (context, userSnap) {
+                    final user =
+                        userSnap.data?.data() as Map<String, dynamic>? ?? {};
+                    return FutureBuilder<DocumentSnapshot>(
+                      future:
+                          FirebaseFirestore.instance
+                              .collection('dogs')
+                              .doc(notif['dogId'])
+                              .get(),
+                      builder: (context, dogSnap) {
+                        final dog =
+                            dogSnap.data?.data() as Map<String, dynamic>? ?? {};
+                        return ListTile(
+                          leading: const Icon(
+                            Icons.calendar_today,
+                            color: Colors.blue,
+                          ),
+                          title: Text(
+                            '${user['fullName'] ?? 'A user'} scheduled a checkup',
+                          ),
+                          subtitle: Text(
+                            'Dog: ${dog['name'] ?? 'Unknown'}\n'
+                            'Date: ${notif['date'] != null ? DateFormat('yyyy-MM-dd').format((notif['date'] as Timestamp).toDate()) : 'N/A'}\n'
+                            'Notes: ${notif['description'] ?? ''}',
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              }
+              // ...handle other notification types if needed
+              return const SizedBox.shrink();
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+Future<void> addAdoptionAdminNotification(
+  String? username,
+  String userEmail,
+  String dogName,
+) async {
+  await FirebaseFirestore.instance.collection('notifications').add({
+    'type': 'adoption_admin',
+    'message': '${username ?? userEmail} wants to adopt the dog: $dogName',
+    'timestamp': FieldValue.serverTimestamp(),
+    'isRead': false,
+    // Optionally include userId, dogId, etc. for admin reference
+  });
 }

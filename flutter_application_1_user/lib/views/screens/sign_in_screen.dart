@@ -5,6 +5,8 @@ import 'package:flutter_application_1_user/bloc/auth/auth_state.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'sign_up_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
@@ -16,8 +18,20 @@ class SignInScreen extends StatelessWidget {
     final passwordController = TextEditingController();
 
     return BlocConsumer<AuthBloc, AuthState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is Authenticated) {
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .set({
+                  'fullName': user.displayName,
+                  'email': user.email,
+                  'profileImage': user.photoURL, // <-- This is correct!
+                  // ...other fields
+                }, SetOptions(merge: true));
+          }
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),

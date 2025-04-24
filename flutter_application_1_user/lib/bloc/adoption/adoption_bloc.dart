@@ -124,6 +124,17 @@ class AdoptionBloc extends Bloc<AdoptionEvent, AdoptionState> {
         'email': email,
         'dogId': event.dogId,
         'dogName': dogName,
+        'recipient': 'admin', // <-- Add this line
+      });
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'type': 'adoption_admin',
+        'message': '${username ?? email} wants to adopt the dog: $dogName',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'dogId': event.dogId,
+        'dogName': dogName,
+        // Do NOT include 'userId' for admin notifications
       });
 
       emit(AdoptionSuccess());
@@ -142,9 +153,12 @@ class AdoptionBloc extends Bloc<AdoptionEvent, AdoptionState> {
       final batch = _firestore.batch();
 
       if (isDeclined) {
-        // If declined, delete the adoption document
+        // Instead of deleting, update the adoption status to 'declined'
         final adoptionRef = _firestore.collection('adoptions').doc(adoptionId);
-        batch.delete(adoptionRef);
+        batch.update(adoptionRef, {
+          'status': 'declined',
+          'declinedAt': FieldValue.serverTimestamp(),
+        });
 
         // Update dog status back to available
         final dogRef = _firestore.collection('dogs').doc(dogId);

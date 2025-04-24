@@ -177,9 +177,9 @@ class DonationBloc extends Bloc<DonationEvent, DonationState> {
 
       // Admin notification (for the admin panel)
       await FirebaseFirestore.instance.collection('notifications').add({
-        'type': 'donation',
+        'type': 'donation_admin',
         'message':
-            '${username ?? (user.email != null && user.email!.contains('@') ? user.email!.split('@')[0] + '@' : "A user")} donated ₱${event.amount}.',
+            '${username ?? user.email?.split('@')[0] ?? "A user"} donated ₱${event.amount.toStringAsFixed(2)}',
         'timestamp': FieldValue.serverTimestamp(),
         'isRead': false,
         'userId': user.uid,

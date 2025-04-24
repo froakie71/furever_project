@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1_user/bloc/schedule_checkup/schedule_checkup_bloc.dart';
 import 'package:flutter_application_1_user/views/screens/dog_screen.dart';
 import 'package:flutter_application_1_user/views/screens/donation_screen.dart';
 import 'package:flutter_application_1_user/views/screens/event_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_application_1_user/views/widgets/schedule_checkup_modal.dart';
 
 class AdoptedDogsScreen extends StatefulWidget {
   const AdoptedDogsScreen({super.key});
@@ -258,15 +261,22 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
                     ),
                   ),
                   ElevatedButton.icon(
-                    icon: const Icon(Icons.calendar_today),
-                    label: const Text('Schedule Checkup'),
+                    label: Text('Schedule Checkup'),
+                    icon: Icon(Icons.calendar_today),
                     onPressed: () {
-                      // Implement checkup scheduling
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder:
+                            (_) => BlocProvider.value(
+                              value: context.read<ScheduleCheckupBloc>(),
+                              child: ScheduleCheckupModal(
+                                dogId: dog['dogId'],
+                                userId: FirebaseAuth.instance.currentUser!.uid,
+                              ),
+                            ),
+                      );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                    ),
                   ),
                 ],
               ),
