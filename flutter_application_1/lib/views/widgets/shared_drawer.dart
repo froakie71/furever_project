@@ -250,13 +250,15 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final notifications = (snapshot.data?.docs ?? []).where((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  // Only show admin notifications
-                  return data['type'] == 'adoption_admin' ||
-                         data['type'] == 'donation_admin' ||
-                         data['type'] == 'event_join';
-                }).toList();
+                final notifications =
+                    (snapshot.data?.docs ?? []).where((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      // Only show admin notifications, including checkup requests
+                      return data['type'] == 'adoption_admin' ||
+                          data['type'] == 'donation_admin' ||
+                          data['type'] == 'event_join' ||
+                          data['type'] == 'checkup_schedule_request';
+                    }).toList();
 
                 if (notifications.isEmpty) {
                   return const Center(child: Text('No notifications'));

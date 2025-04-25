@@ -13,6 +13,7 @@ import 'package:flutter_application_1_user/views/screens/medical_services_screen
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/notifications_bottom_sheet.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class SharedDrawer extends StatefulWidget {
   const SharedDrawer({super.key});
@@ -72,22 +73,33 @@ class _SharedDrawerState extends State<SharedDrawer> {
               final userName = userData?['fullName'] ?? 'User';
               final userEmail =
                   userData?['email'] ?? _auth.currentUser?.email ?? '';
-              final userPhotoUrl = userData?['profileImage'];
+              final userPhotoUrl =
+                  userData?['user_profiles'] ?? userData?['profileImage'];
 
               return UserAccountsDrawerHeader(
                 decoration: const BoxDecoration(color: Color(0xFF32649B)),
-                currentAccountPicture: CircleAvatar(
-                  backgroundColor: Colors.white,
-                  backgroundImage:
-                      userPhotoUrl != null ? NetworkImage(userPhotoUrl) : null,
-                  child:
-                      userPhotoUrl == null
-                          ? const Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.grey,
-                          )
-                          : null,
+                currentAccountPicture: FutureBuilder<String>(
+                  future: _getUserProfileImage(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircleAvatar(
+                        backgroundColor: Colors.white,
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                      return CircleAvatar(
+                        backgroundColor: Colors.white,
+                        backgroundImage: NetworkImage(snapshot.data!),
+                      );
+                    }
+
+                    return const CircleAvatar(
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.person, size: 50, color: Colors.grey),
+                    );
+                  },
                 ),
                 otherAccountsPictures: [
                   StreamBuilder<QuerySnapshot>(
@@ -260,8 +272,49 @@ class _SharedDrawerState extends State<SharedDrawer> {
       ),
     );
   }
-}
 
+  Future<String> _getUserProfileImage() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // First check Firestore for user profile URL
+        final userData =
+            await _firestore.collection('users').doc(user.uid).get();
+
+        // Try all possible profile image field names
+        final userPhotoUrl =
+            userData.data()?['user_profiles'] ??
+            userData.data()?['profileImage'] ??
+            userData.data()?['photoUrl'];
+
+        if (userPhotoUrl != null && userPhotoUrl.isNotEmpty) {
+          return userPhotoUrl;
+        }
+
+        // If not in Firestore, try Firebase Storage
+        try {
+          final ref = FirebaseStorage.instance
+              .ref()
+              .child('user_profiles')
+              .child('${user.uid}.jpg');
+
+          final url = await ref.getDownloadURL();
+
+          // Update Firestore with the URL
+          await _firestore.collection('users').doc(user.uid).update({
+            'user_profiles': url,
+          });
+          return url;
+        } catch (storageError) {
+          debugPrint('Storage error: $storageError');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading profile image: $e');
+    }
+    return '';
+  }
+}
 
 class MyAppBarWithBadge extends StatefulWidget implements PreferredSizeWidget {
   @override

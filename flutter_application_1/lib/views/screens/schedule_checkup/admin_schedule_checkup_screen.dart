@@ -66,67 +66,29 @@ class _AdminScheduleCheckupScreenState
                       final userName = userData['name'] ?? 'User';
                       final userEmail = userData['email'] ?? '';
                       return ExpansionTile(
-                        leading:
-                            (userData['profileImage'] != null &&
-                                    userData['profileImage']
-                                        .toString()
-                                        .isNotEmpty)
-                                ? CircleAvatar(
-                                  backgroundColor: Colors.grey[200],
-                                  child: ClipOval(
-                                    child: Image.network(
-                                      userData['profileImage'],
-                                      fit: BoxFit.cover,
-                                      width: 40,
-                                      height: 40,
-                                      errorBuilder: (
-                                        context,
-                                        error,
-                                        stackTrace,
-                                      ) {
-                                        return Text(
-                                          (userData['fullName'] != null &&
-                                                      userData['fullName']
-                                                          .toString()
-                                                          .isNotEmpty
-                                                  ? userData['fullName'][0]
-                                                  : userData['email'] != null &&
-                                                      userData['email']
-                                                          .toString()
-                                                          .isNotEmpty
-                                                  ? userData['email'][0]
-                                                  : '?')
-                                              .toUpperCase(),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                )
-                                : CircleAvatar(
-                                  backgroundColor: Colors.grey[200],
-                                  child: Text(
-                                    (userData['fullName'] != null &&
-                                                userData['fullName']
-                                                    .toString()
-                                                    .isNotEmpty
-                                            ? userData['fullName'][0]
-                                            : userData['email'] != null &&
-                                                userData['email']
-                                                    .toString()
-                                                    .isNotEmpty
-                                            ? userData['email'][0]
-                                            : '?')
-                                        .toUpperCase(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                    ),
+                        leading: FutureBuilder<String>(
+                          future: _getUserProfileImage(userData),
+                          builder: (context, imageSnapshot) {
+                            if (imageSnapshot.hasData &&
+                                imageSnapshot.data!.isNotEmpty) {
+                              return CircleAvatar(
+                                backgroundColor: Colors.grey[200],
+                                child: ClipOval(
+                                  child: Image.network(
+                                    imageSnapshot.data!,
+                                    fit: BoxFit.cover,
+                                    width: 40,
+                                    height: 40,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildFallbackAvatar(userData);
+                                    },
                                   ),
                                 ),
+                              );
+                            }
+                            return _buildFallbackAvatar(userData);
+                          },
+                        ),
                         title: Text('$userName (${userCheckups.length} dogs)'),
                         subtitle: Text(userEmail),
                         children:
@@ -286,6 +248,35 @@ class _AdminScheduleCheckupScreenState
                 }).toList(),
           );
         },
+      ),
+    );
+  }
+
+  Future<String> _getUserProfileImage(Map<String, dynamic> userData) async {
+    final profileUrl =
+        userData['user_profiles'] ??
+        userData['profileImage'] ??
+        userData['profileImages'];
+
+    if (profileUrl != null && profileUrl.toString().isNotEmpty) {
+      return profileUrl.toString();
+    }
+    return '';
+  }
+
+  Widget _buildFallbackAvatar(Map<String, dynamic> userData) {
+    return CircleAvatar(
+      backgroundColor: Colors.grey[200],
+      child: Text(
+        (userData['fullName'] != null &&
+                    userData['fullName'].toString().isNotEmpty
+                ? userData['fullName'][0]
+                : userData['email'] != null &&
+                    userData['email'].toString().isNotEmpty
+                ? userData['email'][0]
+                : '?')
+            .toUpperCase(),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
       ),
     );
   }

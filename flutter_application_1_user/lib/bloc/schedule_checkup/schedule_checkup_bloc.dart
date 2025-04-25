@@ -57,7 +57,7 @@ class ScheduleCheckupBloc
               'description': event.description,
               'updatedAt': FieldValue.serverTimestamp(),
             });
-        // Notification for update
+        // Notification for update (user)
         await firestore.collection('notifications').add({
           'type': 'checkup_schedule',
           'action': 'updated',
@@ -66,6 +66,26 @@ class ScheduleCheckupBloc
           'date': Timestamp.fromDate(event.date),
           'description': event.description,
           'timestamp': FieldValue.serverTimestamp(),
+        });
+        // Notification for admin
+        final dogDoc =
+            await firestore.collection('dogs').doc(event.dogId).get();
+        final dogName = dogDoc.data()?['name'] ?? 'their dog';
+        final userDoc =
+            await firestore.collection('users').doc(event.userId).get();
+        final username = userDoc.data()?['username'] ?? 'A user';
+
+        await firestore.collection('notifications').add({
+          'type': 'checkup_schedule_request',
+          'action': query.docs.isNotEmpty ? 'updated' : 'created',
+          'userId': 'admin',
+          'dogId': event.dogId,
+          'date': Timestamp.fromDate(event.date),
+          'description': event.description,
+          'timestamp': FieldValue.serverTimestamp(),
+          'message':
+              '$username wants to schedule a checkup with their dog $dogName',
+          'isRead': false,
         });
       } else {
         // Add
@@ -76,7 +96,7 @@ class ScheduleCheckupBloc
           'description': event.description,
           'createdAt': FieldValue.serverTimestamp(),
         });
-        // Notification for creation
+        // Notification for creation (user)
         await firestore.collection('notifications').add({
           'type': 'checkup_schedule',
           'action': 'created',
@@ -85,6 +105,26 @@ class ScheduleCheckupBloc
           'date': Timestamp.fromDate(event.date),
           'description': event.description,
           'timestamp': FieldValue.serverTimestamp(),
+        });
+        // Notification for admin
+        final dogDoc =
+            await firestore.collection('dogs').doc(event.dogId).get();
+        final dogName = dogDoc.data()?['name'] ?? 'their dog';
+        final userDoc =
+            await firestore.collection('users').doc(event.userId).get();
+        final username = userDoc.data()?['username'] ?? 'A user';
+
+        await firestore.collection('notifications').add({
+          'type': 'checkup_schedule_request',
+          'action': query.docs.isNotEmpty ? 'updated' : 'created',
+          'userId': 'admin',
+          'dogId': event.dogId,
+          'date': Timestamp.fromDate(event.date),
+          'description': event.description,
+          'timestamp': FieldValue.serverTimestamp(),
+          'message':
+              '$username wants to schedule a checkup with their dog $dogName',
+          'isRead': false,
         });
       }
 

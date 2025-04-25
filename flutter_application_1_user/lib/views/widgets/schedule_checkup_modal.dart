@@ -60,6 +60,46 @@ class _ScheduleCheckupModalState extends State<ScheduleCheckupModal> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 const SizedBox(height: 16),
+                FutureBuilder<DocumentSnapshot>(
+                  future:
+                      FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(widget.userId)
+                          .get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircleAvatar(
+                        radius: 32,
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    final userData =
+                        snapshot.data?.data() as Map<String, dynamic>?;
+                    final photoUrl = userData?['photoUrl'] as String?;
+                    final displayName =
+                        userData?['username'] ?? userData?['email'] ?? '';
+                    return CircleAvatar(
+                      radius: 32,
+                      backgroundImage:
+                          (photoUrl != null && photoUrl.isNotEmpty)
+                              ? NetworkImage(photoUrl)
+                              : null,
+                      child:
+                          (photoUrl == null || photoUrl.isEmpty)
+                              ? Text(
+                                displayName.isNotEmpty
+                                    ? displayName[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                              : null,
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _descController,
                   decoration: const InputDecoration(labelText: 'Description'),
@@ -103,16 +143,17 @@ class _ScheduleCheckupModalState extends State<ScheduleCheckupModal> {
                       );
                       return;
                     }
-                    FirebaseFirestore.instance
-                        .collection('schedule_checkup')
-                        .add({
-                          'dogId': widget.dogId,
-                          'userId': widget.userId,
-                          'date': Timestamp.fromDate(_selectedDate!),
-                          'description': _descController.text,
-                          'createdAt': FieldValue.serverTimestamp(),
-                          'status': 'pending',
-                        });
+                    context.read<ScheduleCheckupBloc>().add(
+                      AddOrUpdateScheduleCheckup(
+                        widget.dogId,
+                        widget.userId,
+                        _selectedDate!,
+                        _descController.text,
+                      ),
+                    );
+                    Navigator.of(
+                      context,
+                    ).pop(); // Optionally close the modal after saving
                   },
                   child: const Text('Save'),
                 ),

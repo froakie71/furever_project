@@ -30,6 +30,7 @@ class _DonationScreenState extends State<DonationScreen> {
   final ImagePicker _picker = ImagePicker();
   final _amountController = TextEditingController();
   late final DonationBloc _donationBloc;
+  bool _isPickingImage = false; // Add this flag
 
   @override
   void initState() {
@@ -42,12 +43,22 @@ class _DonationScreenState extends State<DonationScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile != null) {
+    if (_isPickingImage) return; // Prevent multiple calls
+    setState(() {
+      _isPickingImage = true;
+    });
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } finally {
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _isPickingImage = false;
       });
     }
   }

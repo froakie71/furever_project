@@ -53,6 +53,48 @@ class NotificationsBottomSheet extends StatelessWidget {
                 },
                 child: const Text('Mark all as read'),
               ),
+              StreamBuilder<QuerySnapshot>(
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('notifications')
+                        .where(
+                          'userId',
+                          isEqualTo: FirebaseAuth.instance.currentUser?.uid,
+                        )
+                        .where('isRead', isEqualTo: false)
+                        .snapshots(),
+                builder: (context, snapshot) {
+                  int unreadCount = snapshot.data?.docs.length ?? 0;
+                  return Stack(
+                    children: [
+                      Icon(Icons.notifications),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              '$unreadCount',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -88,16 +130,16 @@ class NotificationsBottomSheet extends StatelessWidget {
                 final notifications =
                     (snapshot.data?.docs ?? []).where((doc) {
                       final data = doc.data() as Map<String, dynamic>;
-                      // Only show notifications for the current user and user types
+                      // Only show notifications for the current user and NOT admin notifications
                       return data['userId'] ==
                               FirebaseAuth.instance.currentUser?.uid &&
-                          (data['type'] == 'adoption_update' ||
-                              data['type'] == 'donation_user' ||
+                          data['type'] != 'donation_admin' &&
+                          (data['type'] == 'donation' ||
+                              data['type'] == 'adoption_update' ||
                               data['type'] == 'checkup_approved' ||
                               data['type'] == 'checkup_disapproved' ||
                               data['type'] == 'event_registration' ||
-                              data['type'] ==
-                                  'adoption'); // add other user types as needed
+                              data['type'] == 'adoption');
                     }).toList();
                 if (notifications.isEmpty) {
                   return const Center(child: Text('No notifications'));
@@ -118,6 +160,8 @@ class NotificationsBottomSheet extends StatelessWidget {
                       title = 'Checkup Disapproved';
                     } else if (type == 'adoption') {
                       title = 'Adoption Update';
+                    } else if (type == 'donation') {
+                      title = 'Donated';
                     } else {
                       title = notification['eventTitle'] ?? 'Event';
                     }

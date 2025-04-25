@@ -182,7 +182,7 @@ class DonationBloc extends Bloc<DonationEvent, DonationState> {
             '${username ?? user.email?.split('@')[0] ?? "A user"} donated ₱${event.amount.toStringAsFixed(2)}',
         'timestamp': FieldValue.serverTimestamp(),
         'isRead': false,
-        'userId': user.uid,
+        'userId': 'admin', // <--- CHANGE THIS LINE
         'username': username,
         'email': user.email,
         'amount': event.amount,
