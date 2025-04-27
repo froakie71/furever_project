@@ -13,9 +13,10 @@ class AdoptedDogsScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF32649B),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')  // Changed to users collection
-            .snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('users') // Changed to users collection
+                .snapshots(),
         builder: (context, userSnapshot) {
           if (!userSnapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -88,14 +89,24 @@ class AdoptedDogsScreen extends StatelessWidget {
                             ),
                             title: Text(
                               userData['fullName'] ?? userEmail,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             subtitle: Text(
                               '$adoptionCount ${adoptionCount == 1 ? 'dog' : 'dogs'} adopted',
                               style: const TextStyle(color: Colors.grey),
                             ),
-                            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                            onTap: () => _showUserAdoptedDogs(context, userDoc.id, userData),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
+                            onTap:
+                                () => _showUserAdoptedDogs(
+                                  context,
+                                  userDoc.id,
+                                  userData,
+                                ),
                           ),
                         );
                       },
@@ -110,9 +121,11 @@ class AdoptedDogsScreen extends StatelessWidget {
     );
   }
 
-  Future<List<MapEntry<DocumentSnapshot, int>>> _getSortedUsers(List<DocumentSnapshot> users) async {
+  Future<List<MapEntry<DocumentSnapshot, int>>> _getSortedUsers(
+    List<DocumentSnapshot> users,
+  ) async {
     List<MapEntry<DocumentSnapshot, int>> usersWithCount = [];
-    
+
     for (var user in users) {
       final count = await FirebaseFirestore.instance
           .collection('adoptions')
@@ -120,124 +133,219 @@ class AdoptedDogsScreen extends StatelessWidget {
           .where('status', isEqualTo: 'approved')
           .get()
           .then((snap) => snap.docs.length);
-          
-      if (count > 0) {  // Only add users who have adoptions
+
+      if (count > 0) {
+        // Only add users who have adoptions
         usersWithCount.add(MapEntry(user, count));
       }
     }
-    
+
     // Sort by count in descending order
     usersWithCount.sort((a, b) => b.value.compareTo(a.value));
     return usersWithCount;
   }
 
-  void _showUserAdoptedDogs(BuildContext context, String userId, Map<String, dynamic> userData) {
+  void _showUserAdoptedDogs(
+    BuildContext context,
+    String userId,
+    Map<String, dynamic> userData,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              height: 4,
-              width: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
+      builder:
+          (context) => Container(
+            height: MediaQuery.of(context).size.height * 0.85,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                userData['fullName'] ?? userData['email'] ?? 'Unknown User',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF32649B),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-              ),
-            ),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('adoptions')
-                    .where('userId', isEqualTo: userId)
-                    .where('status', isEqualTo: 'approved')
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    userData['fullName'] ?? userData['email'] ?? 'Unknown User',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF32649B),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream:
+                        FirebaseFirestore.instance
+                            .collection('adoptions')
+                            .where('userId', isEqualTo: userId)
+                            .where('status', isEqualTo: 'approved')
+                            .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (context, index) {
-                      final adoption = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-                      final adoptionDate = adoption['approvedAt'] != null
-                          ? (adoption['approvedAt'] as Timestamp).toDate()
-                          : (adoption['submittedAt'] as Timestamp).toDate();
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context, index) {
+                          final adoption =
+                              snapshot.data!.docs[index].data()
+                                  as Map<String, dynamic>;
+                          final adoptionDate =
+                              adoption['approvedAt'] != null
+                                  ? (adoption['approvedAt'] as Timestamp)
+                                      .toDate()
+                                  : (adoption['submittedAt'] as Timestamp)
+                                      .toDate();
 
-                      return FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection('dogs')
-                            .doc(adoption['dogId'])
-                            .get(),
-                        builder: (context, dogSnapshot) {
-                          if (!dogSnapshot.hasData) {
-                            return const Card(
-                              child: ListTile(
-                                title: Text('Loading...'),
-                              ),
-                            );
-                          }
+                          return FutureBuilder<DocumentSnapshot>(
+                            future:
+                                FirebaseFirestore.instance
+                                    .collection('dogs')
+                                    .doc(adoption['dogId'])
+                                    .get(),
+                            builder: (context, dogSnapshot) {
+                              if (!dogSnapshot.hasData) {
+                                return const Card(
+                                  child: ListTile(title: Text('Loading...')),
+                                );
+                              }
 
-                          final dogData = dogSnapshot.data!.data() as Map<String, dynamic>;
+                              final dogData =
+                                  dogSnapshot.data!.data()
+                                      as Map<String, dynamic>;
 
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            child: ListTile(
-                              leading: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  dogData['imageUrl'] ?? '',
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: 60,
-                                    height: 60,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.pets),
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                elevation: 2,
+                                child: ExpansionTile(
+                                  leading: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      dogData['imageUrl'] ?? '',
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (_, __, ___) => Container(
+                                            width: 60,
+                                            height: 60,
+                                            color: Colors.grey[300],
+                                            child: const Icon(Icons.pets),
+                                          ),
+                                    ),
                                   ),
+                                  title: Text(
+                                    dogData['name'] ?? 'Unknown Dog',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    'Adopted on ${DateFormat('MMM dd, yyyy').format(adoptionDate)}',
+                                  ),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          if (dogData['breed'] != null) ...[
+                                            const Text(
+                                              'Breed:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF32649B),
+                                              ),
+                                            ),
+                                            Text(dogData['breed']),
+                                            const SizedBox(height: 8),
+                                          ],
+                                          if (dogData['size'] != null) ...[
+                                            const Text(
+                                              'Size:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF32649B),
+                                              ),
+                                            ),
+                                            Text(dogData['size']),
+                                            const SizedBox(height: 8),
+                                          ],
+                                          if (dogData['age'] != null) ...[
+                                            const Text(
+                                              'Age:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF32649B),
+                                              ),
+                                            ),
+                                            Text(dogData['age']),
+                                            const SizedBox(height: 8),
+                                          ],
+                                          if (dogData['gender'] != null) ...[
+                                            const Text(
+                                              'Gender:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF32649B),
+                                              ),
+                                            ),
+                                            Text(dogData['gender']),
+                                            const SizedBox(height: 8),
+                                          ],
+                                          if (dogData['description'] !=
+                                              null) ...[
+                                            const Text(
+                                              'Description:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF32649B),
+                                              ),
+                                            ),
+                                            Text(dogData['description']),
+                                            const SizedBox(height: 8),
+                                          ],
+                                          if (dogData['medicalRecords'] !=
+                                              null) ...[
+                                            const Text(
+                                              'Medical Records:',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF32649B),
+                                              ),
+                                            ),
+                                            Text(dogData['medicalRecords']),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              title: Text(
-                                dogData['name'] ?? 'Unknown Dog',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              subtitle: Text(
-                                'Adopted on ${DateFormat('MMM dd, yyyy').format(adoptionDate)}',
-                              ),
-                            ),
+                              );
+                            },
                           );
                         },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }
