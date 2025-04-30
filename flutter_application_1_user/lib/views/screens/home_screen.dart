@@ -268,9 +268,7 @@ class _HomeScreenState extends State<HomeScreen>
         } else if (title == 'Medical Concerns?') {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => MedicalServicesScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => MedicalServicesScreen()),
           );
         } else if (title == 'Shop Here!') {
           Navigator.push(
@@ -295,9 +293,9 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(

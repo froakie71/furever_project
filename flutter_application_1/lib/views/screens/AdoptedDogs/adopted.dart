@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application_1/utils/user_search_delegate.dart';
 import 'package:intl/intl.dart';
 
 class AdoptedDogsScreen extends StatelessWidget {
@@ -11,6 +12,38 @@ class AdoptedDogsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Adoption Statistics'),
         backgroundColor: const Color(0xFF32649B),
+        actions: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('users').snapshots(),
+            builder: (context, snapshot) {
+              return IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () async {
+                  if (!snapshot.hasData) return;
+
+                  final users = snapshot.data?.docs ?? [];
+                  final selectedId = await showSearch(
+                    context: context,
+                    delegate: UserSearchDelegate(
+                      users: users,
+                      showAdoptionsOnly: true,
+                    ),
+                  );
+
+                  if (selectedId != null && selectedId.isNotEmpty) {
+                    final selectedUser = users.firstWhere(
+                      (u) => u.id == selectedId,
+                    );
+                    final userData =
+                        selectedUser.data() as Map<String, dynamic>;
+                    // ignore: use_build_context_synchronously
+                    _showUserAdoptedDogs(context, selectedId, userData);
+                  }
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:

@@ -231,6 +231,56 @@ class _SharedDrawerState extends State<SharedDrawer> {
               );
             },
           ),
+          ExpansionTile(
+            leading: const Icon(Icons.pets_rounded, color: Color(0xFF32649B)),
+            title: const Text('Dog Rescue'),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.add_circle_outline),
+                title: const Text('Report New Case'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/rescue-report');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.list_alt),
+                title: const Text('My Reports'),
+                trailing: StreamBuilder<QuerySnapshot>(
+                  stream:
+                      FirebaseFirestore.instance
+                          .collection('rescue_reports')
+                          .where(
+                            'userId',
+                            isEqualTo: FirebaseAuth.instance.currentUser?.uid,
+                          )
+                          .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '${snapshot.data!.docs.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+                onTap: () {
+                  Navigator.pushNamed(context, '/my-rescue-reports');
+                },
+              ),
+            ],
+          ),
           ListTile(
             leading: const Icon(Icons.medical_services),
             title: const Text('Medical Services'),

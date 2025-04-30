@@ -11,6 +11,7 @@ import 'package:flutter_application_1/views/screens/authentication/bloc/auth_eve
 import 'package:flutter_application_1/views/screens/authentication/bloc/auth_state.dart';
 import 'package:flutter_application_1/views/screens/authentication/repository/auth_repository.dart';
 import 'package:flutter_application_1/views/screens/homepage/admin_homepage.dart';
+import 'package:flutter_application_1/views/screens/rescue_reports/admin_rescue_reports_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'views/screens/Dogs/bloc/dog_bloc.dart';
 import 'views/screens/authentication/login/admin_signin_view.dart';
@@ -101,6 +102,9 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
+      routes: {
+        '/admin-rescue-reports': (context) => const AdminRescueReportsScreen(),
+      },
     );
   }
 }

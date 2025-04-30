@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application_1/utils/user_search_delegate.dart';
 import 'package:intl/intl.dart';
 
 class ClientsView extends StatelessWidget {
@@ -11,6 +12,34 @@ class ClientsView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Registered Users'),
         backgroundColor: Colors.blue,
+        actions: [
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('users').snapshots(),
+            builder: (context, snapshot) {
+              return IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () async {
+                  if (!snapshot.hasData) return;
+
+                  final users = snapshot.data?.docs ?? [];
+                  final selectedId = await showSearch(
+                    context: context,
+                    delegate: UserSearchDelegate(users: users),
+                  );
+                  if (selectedId != null && selectedId.isNotEmpty) {
+                    final selectedUser = users.firstWhere(
+                      (u) => u.id == selectedId,
+                    );
+                    final userData =
+                        selectedUser.data() as Map<String, dynamic>;
+                    // ignore: use_build_context_synchronously
+                    _showUserDetails(context, userData);
+                  }
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('users').snapshots(),
@@ -40,36 +69,40 @@ class ClientsView extends StatelessWidget {
                 elevation: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 child: ListTile(
-                  leading: (userData['profileImage'] != null &&
-                          userData['profileImage'].toString().isNotEmpty)
-                      ? CircleAvatar(
-                          radius: 24,
-                          backgroundImage:
-                              NetworkImage(userData['profileImage']),
-                          backgroundColor: Colors.transparent, // No color for Google images!
-                        )
-                      : CircleAvatar(
-                          radius: 24,
-                          backgroundColor: Colors.grey[200],
-                          child: Text(
-                            (userData['fullName'] != null &&
-                                        userData['fullName']
-                                            .toString()
-                                            .isNotEmpty
-                                    ? userData['fullName'][0]
-                                    : userData['email'] != null &&
-                                        userData['email']
-                                            .toString()
-                                            .isNotEmpty
-                                    ? userData['email'][0]
-                                    : '?')
-                                .toUpperCase(),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                  leading:
+                      (userData['profileImage'] != null &&
+                              userData['profileImage'].toString().isNotEmpty)
+                          ? CircleAvatar(
+                            radius: 24,
+                            backgroundImage: NetworkImage(
+                              userData['profileImage'],
+                            ),
+                            backgroundColor:
+                                Colors
+                                    .transparent, // No color for Google images!
+                          )
+                          : CircleAvatar(
+                            radius: 24,
+                            backgroundColor: Colors.grey[200],
+                            child: Text(
+                              (userData['fullName'] != null &&
+                                          userData['fullName']
+                                              .toString()
+                                              .isNotEmpty
+                                      ? userData['fullName'][0]
+                                      : userData['email'] != null &&
+                                          userData['email']
+                                              .toString()
+                                              .isNotEmpty
+                                      ? userData['email'][0]
+                                      : '?')
+                                  .toUpperCase(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
                             ),
                           ),
-                        ),
                   title: Text(
                     userData['fullName'] ?? 'No Name',
                     style: const TextStyle(
@@ -118,7 +151,8 @@ class ClientsView extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 60,
                         backgroundImage: NetworkImage(userData['profileImage']),
-                        backgroundColor: Colors.transparent, // No color for Google images!
+                        backgroundColor:
+                            Colors.transparent, // No color for Google images!
                       ),
                     )
                   else

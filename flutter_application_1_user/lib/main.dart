@@ -7,9 +7,12 @@ import 'package:flutter_application_1_user/bloc/auth/auth_bloc.dart';
 import 'package:flutter_application_1_user/bloc/auth/auth_state.dart';
 import 'package:flutter_application_1_user/bloc/donation/donation_bloc.dart';
 import 'package:flutter_application_1_user/bloc/event_registration/event_registration_bloc.dart';
+import 'package:flutter_application_1_user/bloc/rescue_report/rescue_report_bloc.dart';
 import 'package:flutter_application_1_user/bloc/schedule_checkup/schedule_checkup_bloc.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
+import 'package:flutter_application_1_user/views/screens/my_rescue_reports_screen.dart';
 import 'package:flutter_application_1_user/views/screens/participated_events_screen.dart';
+import 'package:flutter_application_1_user/views/screens/rescue_report_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1_user/views/screens/sign_in_screen.dart';
 import 'firebase_options.dart';
@@ -38,6 +41,7 @@ void main() async {
         BlocProvider(create: (context) => EventRegistrationBloc()),
         BlocProvider(create: (context) => DonationBloc()),
         BlocProvider(create: (context) => ScheduleCheckupBloc()),
+        BlocProvider(create: (context) => RescueReportBloc()),
       ],
       child: const MyApp(),
     ),
@@ -62,6 +66,8 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/participated-events': (context) => const ParticipatedEventsScreen(),
+        '/rescue-report': (context) => const RescueReportScreen(),
+        '/my-rescue-reports': (context) => const MyRescueReportsScreen(),
       },
       home: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {

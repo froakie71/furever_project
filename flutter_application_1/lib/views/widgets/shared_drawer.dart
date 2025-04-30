@@ -199,6 +199,34 @@ class SharedDrawer extends StatelessWidget {
               );
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.pets_rounded),
+            title: const Text('Rescue Reports'),
+            trailing: StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance
+                      .collection('rescue_reports')
+                      .where('status', isEqualTo: 'pending')
+                      .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${snapshot.data!.docs.length}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            onTap: () => Navigator.pushNamed(context, '/admin-rescue-reports'),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),
