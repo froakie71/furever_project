@@ -36,7 +36,14 @@ class NotificationsBottomSheet extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final notifications = snapshot.data!.docs;
+              final notifications =
+                  snapshot.data!.docs
+                      .where(
+                        (doc) =>
+                            (doc.data() as Map<String, dynamic>)['for'] !=
+                            'admin',
+                      )
+                      .toList();
 
               if (notifications.isEmpty) {
                 return const Center(child: Text('No notifications'));
@@ -47,7 +54,12 @@ class NotificationsBottomSheet extends StatelessWidget {
                   itemCount: notifications.length,
                   itemBuilder: (context, index) {
                     final notification = notifications[index];
-                    final timestamp = notification['timestamp'] as Timestamp;
+                    final data = notification.data() as Map<String, dynamic>;
+                    final message = data['message'] as String?;
+                    if (message == null || message.trim().isEmpty) {
+                      return const SizedBox.shrink(); // Skip empty notifications
+                    }
+                    final timestamp = data['timestamp'] as Timestamp;
                     final date = DateTime.fromMillisecondsSinceEpoch(
                       timestamp.millisecondsSinceEpoch,
                     );
@@ -55,7 +67,7 @@ class NotificationsBottomSheet extends StatelessWidget {
                     return Card(
                       child: ListTile(
                         leading: const Icon(Icons.notifications),
-                        title: Text(notification['message']),
+                        title: Text(message),
                         subtitle: Text(
                           '${date.day}/${date.month}/${date.year} ${date.hour % 12 == 0 ? 12 : date.hour % 12}:${date.minute.toString().padLeft(2, '0')} ${date.hour < 12 ? 'AM' : 'PM'}',
                           style: const TextStyle(fontSize: 12),

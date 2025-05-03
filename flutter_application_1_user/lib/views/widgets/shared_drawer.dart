@@ -70,7 +70,7 @@ class _SharedDrawerState extends State<SharedDrawer> {
               }
 
               final userData = snapshot.data?.data() as Map<String, dynamic>?;
-              final userName = userData?['fullName'] ?? 'User';
+              final userName = userData?['username'] ?? 'User';
               final userEmail =
                   userData?['email'] ?? _auth.currentUser?.email ?? '';
               final userPhotoUrl =
