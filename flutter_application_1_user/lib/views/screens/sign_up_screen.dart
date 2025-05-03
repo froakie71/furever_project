@@ -562,22 +562,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             ),
                                           );
                                         }
-
-                                        await FirebaseFirestore.instance
-                                            .collection('notifications')
-                                            .add({
-                                              'type': 'new_user',
-                                              'message':
-                                                  'A new user has registered: ${_usernameController.text}',
-                                              'timestamp':
-                                                  FieldValue.serverTimestamp(),
-                                              'isRead': false,
-                                              'userId':
-                                                  null, // Not for a specific user
-                                              'username':
-                                                  _usernameController.text,
-                                              'email': _emailController.text,
-                                            });
                                       }
                                     },
                             style: ElevatedButton.styleFrom(

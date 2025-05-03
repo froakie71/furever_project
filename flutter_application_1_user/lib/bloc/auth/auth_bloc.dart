@@ -38,22 +38,44 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           password: event.password,
         );
 
+        final uid = userCredential.user!.uid;
+
         // Upload profile image
         final storageRef = _storage
             .ref()
             .child('user_profiles')
-            .child('${userCredential.user!.uid}.jpg');
-
+            .child('$uid.jpg');
         await storageRef.putFile(event.imageFile!);
         final imageUrl = await storageRef.getDownloadURL();
 
         // Create user document with all data including username
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        await _firestore.collection('users').doc(uid).set({
           ...event.userData,
           'profileImage': imageUrl,
-          'userId': userCredential.user!.uid,
-          'username': event.userData['username'], // Ensure username is saved
+          'uid': uid,
         });
+
+        // Prevent duplicate notifications
+        final existing =
+            await _firestore
+                .collection('notifications')
+                .where('type', isEqualTo: 'new_user')
+                .where('userId', isEqualTo: uid)
+                .get();
+
+        if (existing.docs.isEmpty) {
+          await _firestore.collection('notifications').add({
+            'type': 'new_user',
+            'message':
+                'A new user has registered: ${event.userData['username'] ?? event.email}',
+            'timestamp': FieldValue.serverTimestamp(),
+            'isRead': false,
+            'for': 'admin',
+            'userId': uid,
+            'username': event.userData['username'],
+            'email': event.email,
+          });
+        }
 
         emit(Authenticated(userCredential.user!));
       } catch (e) {
@@ -90,6 +112,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final userCredential = await _auth.signInWithCredential(credential);
 
         if (userCredential.user != null) {
+          final userDoc =
+              await _firestore
+                  .collection('users')
+                  .doc(userCredential.user!.uid)
+                  .get();
+
+          final isNewUser = !userDoc.exists;
+
           await _firestore
               .collection('users')
               .doc(userCredential.user!.uid)
@@ -101,6 +131,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
                 'lastLogin': FieldValue.serverTimestamp(),
                 'provider': 'google',
               }, SetOptions(merge: true));
+
+          // Prevent duplicate notifications
+          final existing =
+              await _firestore
+                  .collection('notifications')
+                  .where('type', isEqualTo: 'new_user')
+                  .where('userId', isEqualTo: userCredential.user!.uid)
+                  .get();
+
+          if (isNewUser && existing.docs.isEmpty) {
+            await _firestore.collection('notifications').add({
+              'type': 'new_user',
+              'message':
+                  'A new user has registered: ${userCredential.user!.displayName ?? userCredential.user!.email}',
+              'timestamp': FieldValue.serverTimestamp(),
+              'isRead': false,
+              'for': 'admin',
+              'userId': userCredential.user!.uid,
+              'username': userCredential.user!.displayName ?? '',
+              'email': userCredential.user!.email,
+            });
+          }
 
           emit(Authenticated(userCredential.user));
         }

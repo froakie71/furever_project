@@ -3,206 +3,90 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class NotificationsBottomSheet extends StatelessWidget {
-  final VoidCallback? onOpened;
-  const NotificationsBottomSheet({Key? key, this.onOpened}) : super(key: key);
+  const NotificationsBottomSheet({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Call the callback as soon as the sheet is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (onOpened != null) onOpened!();
-    });
+    // Mark notifications as read when opened
+    _markNotificationsAsRead();
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Notifications',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF32649B),
-                ),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final batch = FirebaseFirestore.instance.batch();
-                  final notifications =
-                      await FirebaseFirestore.instance
-                          .collection('notifications')
-                          .where(
-                            'userId',
-                            isEqualTo: FirebaseAuth.instance.currentUser?.uid,
-                          )
-                          .where('isRead', isEqualTo: false)
-                          .get();
-
-                  for (var doc in notifications.docs) {
-                    batch.update(doc.reference, {'isRead': true});
-                  }
-                  await batch.commit();
-                  if (context.mounted) {
-                    Navigator.of(context).pop(); // Only close if still mounted
-                  }
-                },
-                child: const Text('Mark all as read'),
-              ),
-              StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance
-                        .collection('notifications')
-                        .where(
-                          'userId',
-                          isEqualTo: FirebaseAuth.instance.currentUser?.uid,
-                        )
-                        .where('isRead', isEqualTo: false)
-                        .snapshots(),
-                builder: (context, snapshot) {
-                  int unreadCount = snapshot.data?.docs.length ?? 0;
-                  return Stack(
-                    children: [
-                      Icon(Icons.notifications),
-                      if (unreadCount > 0)
-                        Positioned(
-                          right: 0,
-                          child: Container(
-                            padding: EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            constraints: BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: Text(
-                              '$unreadCount',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ],
+          const Text(
+            'Notifications',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance
-                      .collection('notifications')
-                      .where(
-                        'userId',
-                        isEqualTo: FirebaseAuth.instance.currentUser?.uid,
-                      )
-                      .orderBy('timestamp', descending: true)
-                      .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text(
-                      'Error loading notifications',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  );
-                }
+          StreamBuilder<QuerySnapshot>(
+            stream:
+                FirebaseFirestore.instance
+                    .collection('notifications')
+                    .where(
+                      'userId',
+                      isEqualTo: FirebaseAuth.instance.currentUser?.uid,
+                    )
+                    .orderBy('timestamp', descending: true)
+                    .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              final notifications = snapshot.data!.docs;
 
-                print(
-                  'Current user UID: ${FirebaseAuth.instance.currentUser?.uid}',
-                );
+              if (notifications.isEmpty) {
+                return const Center(child: Text('No notifications'));
+              }
 
-                final notifications =
-                    (snapshot.data?.docs ?? []).where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      // Only show notifications for the current user and NOT admin notifications
-                      return data['userId'] ==
-                              FirebaseAuth.instance.currentUser?.uid &&
-                          data['type'] != 'donation_admin' &&
-                          (data['type'] == 'donation' ||
-                              data['type'] == 'adoption_update' ||
-                              data['type'] == 'checkup_approved' ||
-                              data['type'] == 'checkup_disapproved' ||
-                              data['type'] == 'event_registration' ||
-                              data['type'] == 'adoption');
-                    }).toList();
-                if (notifications.isEmpty) {
-                  return const Center(child: Text('No notifications'));
-                }
-
-                return ListView.builder(
+              return Expanded(
+                child: ListView.builder(
                   itemCount: notifications.length,
                   itemBuilder: (context, index) {
-                    final notification =
-                        notifications[index].data() as Map<String, dynamic>;
-                    final type = notification['type'];
-                    String title = '';
-                    String message = notification['message'] ?? '';
-
-                    if (type == 'checkup_approved') {
-                      title = 'Checkup Approved';
-                    } else if (type == 'checkup_disapproved') {
-                      title = 'Checkup Disapproved';
-                    } else if (type == 'adoption') {
-                      title = 'Adoption Update';
-                    } else if (type == 'donation') {
-                      title = 'Donated';
-                    } else {
-                      title = notification['eventTitle'] ?? 'Event';
-                    }
+                    final notification = notifications[index];
+                    final timestamp = notification['timestamp'] as Timestamp;
+                    final date = DateTime.fromMillisecondsSinceEpoch(
+                      timestamp.millisecondsSinceEpoch,
+                    );
 
                     return Card(
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
                       child: ListTile(
-                        leading: Icon(
-                          type == 'checkup_approved'
-                              ? Icons.verified
-                              : type == 'checkup_disapproved'
-                              ? Icons.cancel
-                              : Icons.notifications,
-                          color:
-                              type == 'checkup_approved'
-                                  ? Colors.green
-                                  : type == 'checkup_disapproved'
-                                  ? Colors.red
-                                  : null,
-                          size: 40,
+                        leading: const Icon(Icons.notifications),
+                        title: Text(notification['message']),
+                        subtitle: Text(
+                          '${date.day}/${date.month}/${date.year} ${date.hour % 12 == 0 ? 12 : date.hour % 12}:${date.minute.toString().padLeft(2, '0')} ${date.hour < 12 ? 'AM' : 'PM'}',
+                          style: const TextStyle(fontSize: 12),
                         ),
-                        title: Text(title),
-                        subtitle: Text(message),
-                        onTap: () async {
-                          await notifications[index].reference.update({
-                            'isRead': true,
-                          });
-                        },
                       ),
                     );
                   },
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
+  }
+
+  void _markNotificationsAsRead() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      final unreadNotifications =
+          await FirebaseFirestore.instance
+              .collection('notifications')
+              .where('userId', isEqualTo: userId)
+              .where('isRead', isEqualTo: false)
+              .get();
+
+      final batch = FirebaseFirestore.instance.batch();
+      for (var doc in unreadNotifications.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+      await batch.commit();
+    }
   }
 }

@@ -113,28 +113,12 @@ class AdoptionBloc extends Bloc<AdoptionEvent, AdoptionState> {
           dogDoc.exists ? (dogDoc.data()?['name'] ?? 'the dog') : 'the dog';
 
       // Admin notification (for the admin panel)
-      await _firestore.collection('notifications').add({
-        'type': 'adoption_request',
-        'message':
-            '${(username != null && username.trim().isNotEmpty) ? username : (email != null && email.contains('@') ? email.split('@')[0] + '@' : "A user")} wants to adopt the dog: $dogName',
-        'timestamp': FieldValue.serverTimestamp(),
-        'isRead': false,
-        'userId': event.userId,
-        'username': username,
-        'email': email,
-        'dogId': event.dogId,
-        'dogName': dogName,
-        'recipient': 'admin', // <-- Add this line
-      });
-
       await FirebaseFirestore.instance.collection('notifications').add({
         'type': 'adoption_admin',
-        'message': '${username ?? email} wants to adopt the dog: $dogName',
+        'message': '$username wants to adopt the dog: $dogName',
         'timestamp': FieldValue.serverTimestamp(),
         'isRead': false,
-        'dogId': event.dogId,
-        'dogName': dogName,
-        // Do NOT include 'userId' for admin notifications
+        'for': 'admin',
       });
 
       emit(AdoptionSuccess());

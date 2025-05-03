@@ -45,6 +45,16 @@ class RescueReportBloc extends Bloc<RescueReportEvent, RescueReportState> {
         'status': 'pending',
       });
 
+      // After adding the rescue report
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'type': 'new_rescue_report',
+        'message': 'A new dog rescue report has been submitted.',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+        'for': 'admin',
+        // Add more fields if needed, e.g. reporter email, location, etc.
+      });
+
       emit(RescueReportSuccess([]));
     } catch (e) {
       emit(RescueReportError(e.toString()));

@@ -266,9 +266,6 @@ class ProcessAdoptionScreen extends StatelessWidget {
         if (state is AdoptionSuccess) {
           // Create notification for the user
           await FirebaseFirestore.instance.collection('notifications').add({
-            'userId': userId,
-            'dogName': dogName,
-            'dogImage': dogImage, // <-- Add this line
             'message':
                 isDeclined
                     ? 'Your adoption request for $dogName was declined.'
@@ -277,6 +274,7 @@ class ProcessAdoptionScreen extends StatelessWidget {
             'isRead': false,
             'type': 'adoption',
             'status': isDeclined ? 'declined' : 'approved',
+            'userId': userId, // Ensure this is the actual applicant's UID.
           });
 
           loadingOverlay.remove();
@@ -294,7 +292,6 @@ class ProcessAdoptionScreen extends StatelessWidget {
           }
           break;
         } else if (state is AdoptionError) {
-          loadingOverlay.remove();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

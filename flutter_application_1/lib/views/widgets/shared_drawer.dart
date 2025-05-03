@@ -281,11 +281,13 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
                 final notifications =
                     (snapshot.data?.docs ?? []).where((doc) {
                       final data = doc.data() as Map<String, dynamic>;
-                      // Only show admin notifications, including checkup requests
                       return data['type'] == 'adoption_admin' ||
                           data['type'] == 'donation_admin' ||
                           data['type'] == 'event_join' ||
-                          data['type'] == 'checkup_schedule_request';
+                          data['type'] == 'checkup_schedule_request' ||
+                          data['type'] == 'new_user' ||
+                          data['type'] ==
+                              'new_rescue_report'; // <-- Add this line
                     }).toList();
 
                 if (notifications.isEmpty) {
@@ -310,6 +312,12 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
                     } else if (type == 'donation_admin') {
                       icon = Icons.volunteer_activism;
                       iconColor = Colors.purple;
+                    } else if (type == 'checkup_schedule_request') {
+                      icon = Icons.calendar_today;
+                      iconColor = Colors.teal;
+                    } else if (type == 'new_user') {
+                      icon = Icons.person_add;
+                      iconColor = Colors.green;
                     } else {
                       icon = Icons.notifications;
                       iconColor = Colors.grey;
@@ -433,6 +441,16 @@ Future<void> addAdoptionAdminNotification(
     'message': '${username ?? userEmail} wants to adopt the dog: $dogName',
     'timestamp': FieldValue.serverTimestamp(),
     'isRead': false,
-    // Optionally include userId, dogId, etc. for admin reference
+    'for': 'admin',
+  });
+}
+
+Future<void> addNewRescueReportNotification() async {
+  await FirebaseFirestore.instance.collection('notifications').add({
+    'type': 'new_rescue_report',
+    'message': 'A new dog rescue report has been submitted.',
+    'timestamp': FieldValue.serverTimestamp(),
+    'isRead': false,
+    'for': 'admin',
   });
 }

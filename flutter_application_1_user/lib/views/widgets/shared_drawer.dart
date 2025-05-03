@@ -102,61 +102,15 @@ class _SharedDrawerState extends State<SharedDrawer> {
                   },
                 ),
                 otherAccountsPictures: [
-                  StreamBuilder<QuerySnapshot>(
-                    stream:
-                        FirebaseFirestore.instance
-                            .collection('notifications')
-                            .where(
-                              'userId',
-                              isEqualTo: FirebaseAuth.instance.currentUser?.uid,
-                            )
-                            .where('isRead', isEqualTo: false)
-                            .snapshots(),
-                    builder: (context, snapshot) {
-                      int unreadCount = 0;
-                      if (snapshot.hasData) {
-                        unreadCount = snapshot.data!.docs.length;
-                      }
-                      return Stack(
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.notifications,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _showNotifications(context);
-                            },
-                          ),
-                          if (unreadCount > 0)
-                            Positioned(
-                              right: 4,
-                              top: 4,
-                              child: Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 16,
-                                  minHeight: 16,
-                                ),
-                                child: Text(
-                                  '$unreadCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _showNotifications(context);
                     },
                   ),
                 ],
@@ -437,13 +391,8 @@ class _MyAppBarWithBadgeState extends State<MyAppBarWithBadge> {
                 showModalBottomSheet(
                   context: context,
                   builder:
-                      (context) => NotificationsBottomSheet(
-                        onOpened: () {
-                          setState(() {
-                            _unreadCount = 0;
-                          });
-                        },
-                      ),
+                      (context) =>
+                          const NotificationsBottomSheet(), // Remove onOpened parameter
                 );
               },
             );
