@@ -176,7 +176,45 @@ class SharedDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.notifications),
-            title: const Text('Notifications'),
+            title: Row(
+              children: [
+                const Text('Notifications'),
+                const SizedBox(width: 8),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('notifications')
+                      .where('isRead', isEqualTo: false)
+                      .where('for', isEqualTo: 'admin')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const SizedBox.shrink();
+                    }
+                    
+                    final unreadCount = snapshot.data!.docs.length;
+                    if (unreadCount == 0) {
+                      return const SizedBox.shrink();
+                    }
+                    
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
             onTap: () {
               Navigator.pop(context); // Close the drawer
               showModalBottomSheet(
@@ -250,6 +288,16 @@ class SharedDrawer extends StatelessWidget {
 class _AdminNotificationsBottomSheet extends StatelessWidget {
   const _AdminNotificationsBottomSheet();
 
+  Future<void> _markAllAsRead(List<QueryDocumentSnapshot> notifications) async {
+    final batch = FirebaseFirestore.instance.batch();
+    for (var notification in notifications) {
+      if (!(notification.data() as Map<String, dynamic>)['isRead']) {
+        batch.update(notification.reference, {'isRead': true});
+      }
+    }
+    await batch.commit();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -258,48 +306,72 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Notifications',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Notifications',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('notifications')
+                    .where('isRead', isEqualTo: false)
+                    .where('for', isEqualTo: 'admin')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return TextButton.icon(
+                    onPressed: () => _markAllAsRead(snapshot.data!.docs),
+                    icon: const Icon(Icons.done_all),
+                    label: const Text('Mark all as read'),
+                  );
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance
-                      .collection('notifications')
-                      .orderBy('timestamp', descending: true)
-                      .snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection('notifications')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final notifications =
-                    (snapshot.data?.docs ?? []).where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      return data['type'] == 'adoption_admin' ||
-                          data['type'] == 'donation_admin' ||
-                          data['type'] == 'event_join' ||
-                          data['type'] == 'checkup_schedule_request' ||
-                          data['type'] == 'new_user' ||
-                          data['type'] ==
-                              'new_rescue_report'; // <-- Add this line
-                    }).toList();
+                final notifications = (snapshot.data?.docs ?? []).where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  return data['type'] == 'adoption_admin' ||
+                      data['type'] == 'donation_admin' ||
+                      data['type'] == 'event_join' ||
+                      data['type'] == 'checkup_schedule_request' ||
+                      data['type'] == 'new_user' ||
+                      data['type'] == 'new_rescue_report';
+                }).toList();
 
                 if (notifications.isEmpty) {
                   return const Center(child: Text('No notifications'));
                 }
 
+                // Mark notifications as read when viewed
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _markAllAsRead(notifications);
+                });
+
                 return ListView.builder(
                   itemCount: notifications.length,
                   itemBuilder: (context, index) {
-                    final notif =
-                        notifications[index].data() as Map<String, dynamic>;
+                    final notif = notifications[index].data() as Map<String, dynamic>;
                     final type = notif['type'];
+                    final isRead = notif['isRead'] ?? false;
                     IconData icon;
                     Color iconColor;
 
@@ -324,11 +396,12 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
                     }
 
                     return Card(
-                      elevation: 2,
+                      elevation: isRead ? 1 : 2,
                       margin: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 6,
                       ),
+                      color: isRead ? Colors.white : Colors.blue.shade50,
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: iconColor.withOpacity(0.15),
@@ -336,17 +409,19 @@ class _AdminNotificationsBottomSheet extends StatelessWidget {
                         ),
                         title: Text(
                           notif['message'] ?? '',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                          ),
                         ),
                         subtitle: Text(
                           notif['timestamp'] != null
                               ? DateFormat('yyyy-MM-dd – kk:mm').format(
-                                (notif['timestamp'] as Timestamp).toDate(),
-                              )
+                                  (notif['timestamp'] as Timestamp).toDate(),
+                                )
                               : '',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey,
+                            color: isRead ? Colors.grey : Colors.black54,
                           ),
                         ),
                       ),

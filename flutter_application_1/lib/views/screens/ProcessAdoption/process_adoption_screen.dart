@@ -1,12 +1,15 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/views/screens/ProcessAdoption/bloc/adoption_bloc.dart';
 import 'package:flutter_application_1/views/screens/ProcessAdoption/bloc/adoption_event.dart';
 import 'package:flutter_application_1/views/screens/ProcessAdoption/bloc/adoption_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../widgets/shared_drawer.dart';
 
 class ProcessAdoptionScreen extends StatelessWidget {
+  const ProcessAdoptionScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -250,7 +253,6 @@ class ProcessAdoptionScreen extends StatelessWidget {
           await FirebaseFirestore.instance.collection('dogs').doc(dogId).get();
       final dogData = dogDoc.data() as Map<String, dynamic>;
       final dogName = dogData['name'] ?? 'the dog';
-      final dogImage = dogData['imageUrl'] ?? null;
 
       // Add adoption status update event
       context.read<AdoptionBloc>().add(

@@ -7,4 +7,9 @@ class AddMerch extends MerchEvent {
   AddMerch(this.merch);
 }
 
+class DeleteMerch extends MerchEvent {
+  final String merchId;
+  DeleteMerch(this.merchId);
+}
+
 class LoadMerch extends MerchEvent {}

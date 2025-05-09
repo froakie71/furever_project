@@ -49,17 +49,20 @@ class SignInScreen extends StatelessWidget {
         return Scaffold(
           body: SafeArea(
             child: Container(
-              color: Color(0xFF32649B), // Light blue background
+              width: double.infinity,
+              height: double.infinity,
+              color: Color(0xFF32649B),
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24.0,
-                    vertical: 24.0,
+                    vertical: 40.0,
                   ),
                   child: Form(
                     key: formKey,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Logo
                         Center(
@@ -86,82 +89,118 @@ class SignInScreen extends StatelessWidget {
                         const SizedBox(height: 20),
 
                         const SizedBox(height: 32), // Added top spacing
-                        // Email TextField
-                        TextFormField(
-                          controller: emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            filled: true,
-                            fillColor: Colors.white, // White background
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: emailController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Email',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
+                                child: const Icon(
+                                  Icons.email_outlined,
+                                  color: Color(0xFF32649B),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.email_outlined,
-                                color: Color(0xFF32649B),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ), // Added internal padding
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              return null;
+                            },
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            return null;
-                          },
                         ),
-                        const SizedBox(height: 10), // Increased spacing
-                        // Password TextField
-                        TextFormField(
-                          controller: passwordController,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            filled: true,
-                            fillColor: Colors.white, // White background
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: passwordController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Password',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
+                                child: const Icon(
+                                  Icons.lock_outline,
+                                  color: Color(0xFF32649B),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.lock_outline,
-                                color: Color(0xFF32649B),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ), // Added internal padding
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
                           ),
-                          obscureText: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            return null;
-                          },
                         ),
                         const SizedBox(height: 30), // Increased spacing
                         // Login Button

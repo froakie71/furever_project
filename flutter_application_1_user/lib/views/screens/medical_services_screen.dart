@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1_user/views/screens/adopted_dogs_screen.dart';
 import 'package:flutter_application_1_user/views/screens/dog_screen.dart';

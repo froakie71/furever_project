@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1_user/bloc/schedule_checkup/schedule_checkup_bloc.dart';
-import 'package:flutter_application_1_user/bloc/schedule_checkup/schedule_checkup_state.dart';
 import 'package:flutter_application_1_user/bloc/schedule_checkup/schedule_checkup_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,8 +21,8 @@ class ScheduleCheckupModal extends StatefulWidget {
 
 class _ScheduleCheckupModalState extends State<ScheduleCheckupModal> {
   DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
   final TextEditingController _descController = TextEditingController();
-  bool _submitted = false;
 
   @override
   void initState() {
@@ -31,6 +30,12 @@ class _ScheduleCheckupModalState extends State<ScheduleCheckupModal> {
     context.read<ScheduleCheckupBloc>().add(
       LoadScheduleCheckup(widget.dogId, widget.userId),
     );
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return DateFormat('hh:mm a').format(dt);
   }
 
   @override
@@ -87,14 +92,14 @@ class _ScheduleCheckupModalState extends State<ScheduleCheckupModal> {
                       child:
                           (photoUrl == null || photoUrl.isEmpty)
                               ? Text(
-                                displayName.isNotEmpty
-                                    ? displayName[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
+                                  displayName.isNotEmpty
+                                      ? displayName[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
                               : null,
                     );
                   },
@@ -135,25 +140,59 @@ class _ScheduleCheckupModalState extends State<ScheduleCheckupModal> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _selectedTime == null
+                            ? 'No time chosen'
+                            : 'Time: ${_formatTime(_selectedTime!)}',
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: _selectedTime ?? TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            _selectedTime = picked;
+                          });
+                        }
+                      },
+                      child: const Text('Choose Time'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    if (_selectedDate == null || _descController.text.isEmpty) {
+                    if (_selectedDate == null || _selectedTime == null || _descController.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Please fill all fields')),
                       );
                       return;
                     }
+                    
+                    // Combine date and time
+                    final dateTime = DateTime(
+                      _selectedDate!.year,
+                      _selectedDate!.month,
+                      _selectedDate!.day,
+                      _selectedTime!.hour,
+                      _selectedTime!.minute,
+                    );
+                    
                     context.read<ScheduleCheckupBloc>().add(
                       AddOrUpdateScheduleCheckup(
                         widget.dogId,
                         widget.userId,
-                        _selectedDate!,
+                        dateTime,
                         _descController.text,
                       ),
                     );
-                    Navigator.of(
-                      context,
-                    ).pop(); // Optionally close the modal after saving
+                    Navigator.of(context).pop();
                   },
                   child: const Text('Save'),
                 ),

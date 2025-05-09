@@ -1,19 +1,14 @@
+// ignore_for_file: deprecated_member_use, duplicate_ignore
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1_user/bloc/auth/auth_bloc.dart';
-import 'package:flutter_application_1_user/bloc/auth/auth_event.dart';
-import 'package:flutter_application_1_user/views/screens/adopted_dogs_screen.dart';
 import 'package:flutter_application_1_user/views/screens/dog_screen.dart';
 import 'package:flutter_application_1_user/views/screens/donation_screen.dart';
 import 'package:flutter_application_1_user/views/screens/event_screen.dart';
 import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
 import 'medical_services_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -23,8 +18,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final PageController _pageController = PageController();
   String? userPhotoUrl;

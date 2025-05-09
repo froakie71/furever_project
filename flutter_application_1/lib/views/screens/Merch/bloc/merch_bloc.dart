@@ -29,5 +29,16 @@ class MerchBloc extends Bloc<MerchEvent, MerchState> {
         emit(MerchError(e.toString()));
       }
     });
+    
+    on<DeleteMerch>((event, emit) async {
+      try {
+        // Delete the merchandise from Firestore
+        await _firestore.collection('merch').doc(event.merchId).delete();
+        // Reload the merchandise list
+        add(LoadMerch());
+      } catch (e) {
+        emit(MerchError(e.toString()));
+      }
+    });
   }
 }

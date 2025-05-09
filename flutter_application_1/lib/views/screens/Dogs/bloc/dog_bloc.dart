@@ -48,6 +48,7 @@ class DogBloc extends Bloc<DogEvent, DogState> {
     });
 
     on<ProcessAdoption>(_onProcessAdoption);
+    on<DeleteDog>(_onDeleteDog);
   }
 
   Future<void> _handleAdoptionRequest(String dogId, String status) async {
@@ -85,6 +86,48 @@ class DogBloc extends Bloc<DogEvent, DogState> {
         await _handleAdoptionRequest(event.dogId, 'available');
       }
       emit(AdoptionProcessed());
+    } catch (e) {
+      emit(DogError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteDog(
+    DeleteDog event,
+    Emitter<DogState> emit,
+  ) async {
+    try {
+      emit(DogLoading());
+      
+      // Get the dog document
+      final dogDoc = await FirebaseFirestore.instance
+          .collection('dogs')
+          .doc(event.dogId)
+          .get();
+
+      if (dogDoc.exists) {
+        final dogData = dogDoc.data();
+        // Delete the image from storage if it exists
+        if (dogData != null && dogData['imageUrl'] != null && dogData['imageUrl'].isNotEmpty) {
+          try {
+            final ref = FirebaseStorage.instance
+                .refFromURL(dogData['imageUrl']);
+            await ref.delete();
+          } catch (e) {
+            print('Error deleting image: $e');
+            // Continue with dog deletion even if image deletion fails
+          }
+        }
+
+        // Delete the dog document
+        await FirebaseFirestore.instance
+            .collection('dogs')
+            .doc(event.dogId)
+            .delete();
+
+        emit(DogDeleted());
+      } else {
+        emit(DogError('Dog not found'));
+      }
     } catch (e) {
       emit(DogError(e.toString()));
     }

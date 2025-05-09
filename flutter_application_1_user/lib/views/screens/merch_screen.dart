@@ -362,47 +362,78 @@ class _MerchScreenState extends State<MerchScreen> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2, // 2 columns
-                        childAspectRatio: 0.65, // Adjust for card height
-                        crossAxisSpacing: 5, // Horizontal space between cards
-                        mainAxisSpacing: 5, // Vertical space between cards
+                        childAspectRatio: 0.7, // Adjust for card height
+                        crossAxisSpacing: 12, // Horizontal space between cards
+                        mainAxisSpacing: 12, // Vertical space between cards
                       ),
                       itemCount: filteredProducts.length,
                       itemBuilder: (context, index) {
                         final product = filteredProducts[index];
                         return Card(
+                          elevation: 3,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: InkWell(
-                            // Add this
+                            borderRadius: BorderRadius.circular(15),
                             onTap: () => _showProductDetails(product),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(15),
+                                Container(
+                                  height: 150,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(15),
+                                    ),
                                   ),
-                                  child: Image.network(
-                                    product.imageUrl,
-                                    width: double.infinity,
-                                    height: 120,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        height: 120,
-                                        color: Colors.grey[300],
-                                        child: const Icon(Icons.error),
-                                      );
-                                    },
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(15),
+                                    ),
+                                    child: Image.network(
+                                      product.imageUrl,
+                                      width: double.infinity,
+                                      height: 150,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Center(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.broken_image, size: 40, color: Colors.grey[400]),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Image not available',
+                                                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded /
+                                                    loadingProgress.expectedTotalBytes!
+                                                : null,
+                                            color: const Color(0xFF32649B),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
                                       Text(
                                         product.name,
                                         style: const TextStyle(
@@ -420,19 +451,31 @@ class _MerchScreenState extends State<MerchScreen> {
                                         style: const TextStyle(fontSize: 14),
                                       ),
                                       const SizedBox(height: 4),
-                                      TextButton(
-                                        onPressed: () =>
-                                            _launchURL(product.url),
-                                        child: const Text(
-                                          'Shop Now →',
-                                          style: TextStyle(
+                                      const Spacer(),
+                                      Container(
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF32649B).withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: TextButton.icon(
+                                          onPressed: () => _launchURL(product.url),
+                                          icon: const Icon(
+                                            Icons.shopping_cart_outlined, 
                                             color: Color(0xFF32649B),
-                                            decoration:
-                                                TextDecoration.underline,
+                                            size: 16,
+                                          ),
+                                          label: const Text(
+                                            'Shop Now',
+                                            style: TextStyle(
+                                              color: Color(0xFF32649B),
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ],
+                                    ),
                                   ),
                                 ),
                               ],

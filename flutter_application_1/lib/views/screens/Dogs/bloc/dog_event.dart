@@ -33,6 +33,12 @@ class ProcessAdoption extends DogEvent {
 
 class LoadDogs extends DogEvent {}
 
+class DeleteDog extends DogEvent {
+  final String dogId;
+
+  DeleteDog({required this.dogId});
+}
+
 class Dog {
   final String id;
   final String name;

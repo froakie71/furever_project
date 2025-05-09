@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_types_as_parameter_names
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -121,7 +123,7 @@ class DonationBloc extends Bloc<DonationEvent, DonationState> {
       _lastTopDonatorsState = TopDonatorsLoaded(topList);
       emit(_lastTopDonatorsState!);
     } catch (e) {
-      print('Error loading top donators: $e'); // Add debug print
+      ('Error loading top donators: $e'); // Add debug print
       emit(DonationError('Failed to load top donators: $e'));
     }
   }

@@ -18,7 +18,6 @@ import 'views/screens/authentication/login/admin_signin_view.dart';
 import 'views/screens/Events/bloc/event_bloc.dart';
 import 'views/screens/Merch/bloc/merch_bloc.dart';
 import 'views/screens/schedule_checkup/ScheduleCheckupBloc/schedule_checkup_bloc.dart';
-import 'views/screens/schedule_checkup/admin_schedule_checkup_screen.dart';
 
 // main.dart
 void main() async {
@@ -34,7 +33,7 @@ void main() async {
       FlutterError.dumpErrorToConsole(details);
     };
   } catch (e) {
-    print('Firebase initialization error: $e');
+    ('Firebase initialization error: $e');
   }
 
   runApp(

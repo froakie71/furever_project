@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1/views/screens/schedule_checkup/ScheduleCheckupBloc/schedule_checkup_bloc.dart';
 import 'package:flutter_application_1/views/screens/schedule_checkup/ScheduleCheckupBloc/schedule_checkup_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'dog_checkup_detail_modal.dart';
 
 class AdminScheduleCheckupScreen extends StatefulWidget {
@@ -15,8 +16,47 @@ class AdminScheduleCheckupScreen extends StatefulWidget {
 
 class _AdminScheduleCheckupScreenState
     extends State<AdminScheduleCheckupScreen> {
-  // Add this set to track recently disapproved checkups
   final Set<String> _recentlyDisapproved = {};
+
+  Future<void> _createNotification({
+    required String userId,
+    required String dogName,
+    required String status,
+    required DateTime checkupDate,
+  }) async {
+    String message;
+    String type = 'checkup';
+    
+    // Format the date and time in a user-friendly way
+    final dateFormatter = DateFormat('EEEE, MMMM d, y');
+    final timeFormatter = DateFormat('h:mm a');
+    final formattedDate = dateFormatter.format(checkupDate);
+    final formattedTime = timeFormatter.format(checkupDate);
+    
+    if (status == 'approved') {
+      message = 'Your checkup request for $dogName has been approved.\nScheduled for: $formattedDate at $formattedTime';
+    } else {
+      message = 'Your checkup request for $dogName has been disapproved';
+    }
+
+    await FirebaseFirestore.instance.collection('notifications').add({
+      'userId': userId,
+      'type': type,
+      'message': message,
+      'timestamp': FieldValue.serverTimestamp(),
+      'isRead': false,
+      'for': 'user',
+      'checkupDate': checkupDate, // Store the actual date for future reference
+    });
+  }
+
+  String _formatDateTime(Timestamp? timestamp) {
+    if (timestamp == null) return 'N/A';
+    final date = timestamp.toDate();
+    final dateFormatter = DateFormat('yyyy-MM-dd');
+    final timeFormatter = DateFormat('h:mm a');
+    return '${dateFormatter.format(date)} at ${timeFormatter.format(date)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,8 +160,7 @@ class _AdminScheduleCheckupScreenState
                             );
                           }
                           final dogData =
-                              dogSnap.data!.data() as Map<String, dynamic>? ??
-                                  {};
+                              dogSnap.data!.data() as Map<String, dynamic>? ?? {};
                           final docData =
                               dogDoc.data() as Map<String, dynamic>? ?? {};
                           final status = docData['status'] ?? 'pending';
@@ -157,7 +196,10 @@ class _AdminScheduleCheckupScreenState
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Tap for details'),
+                                Text('Scheduled for: ${_formatDateTime(docData['date'])}'),
+                                const SizedBox(height: 4),
+                                Text('Notes: ${docData['description'] ?? 'No notes'}'),
+                                const SizedBox(height: 8),
                                 Row(
                                   children: [
                                     if (status == 'pending') ...[
@@ -170,7 +212,12 @@ class _AdminScheduleCheckupScreenState
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.green,
                                         ),
-                                        onPressed: () {
+                                        onPressed: () async {
+                                          // Get the user and dog information before updating status
+                                          final checkupData = dogDoc.data() as Map<String, dynamic>;
+                                          final userId = checkupData['userId'];
+                                          final checkupDate = (checkupData['date'] as Timestamp).toDate();
+
                                           context
                                               .read<ScheduleCheckupBloc>()
                                               .add(
@@ -178,6 +225,14 @@ class _AdminScheduleCheckupScreenState
                                                   dogDoc.id,
                                                 ),
                                               );
+                                          
+                                          // Create notification after approval
+                                          await _createNotification(
+                                            userId: userId,
+                                            dogName: dogData['name'] ?? 'your dog',
+                                            status: 'approved',
+                                            checkupDate: checkupDate,
+                                          );
                                         },
                                       ),
                                       const SizedBox(width: 8),
@@ -190,7 +245,12 @@ class _AdminScheduleCheckupScreenState
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.red,
                                         ),
-                                        onPressed: () {
+                                        onPressed: () async {
+                                          // Get the user and dog information before updating status
+                                          final checkupData = dogDoc.data() as Map<String, dynamic>;
+                                          final userId = checkupData['userId'];
+                                          final checkupDate = (checkupData['date'] as Timestamp).toDate();
+
                                           context
                                               .read<ScheduleCheckupBloc>()
                                               .add(
@@ -198,6 +258,15 @@ class _AdminScheduleCheckupScreenState
                                                   dogDoc.id,
                                                 ),
                                               );
+
+                                          // Create notification after disapproval
+                                          await _createNotification(
+                                            userId: userId,
+                                            dogName: dogData['name'] ?? 'your dog',
+                                            status: 'disapproved',
+                                            checkupDate: checkupDate,
+                                          );
+
                                           setState(() {
                                             _recentlyDisapproved.add(
                                               dogDoc.id,

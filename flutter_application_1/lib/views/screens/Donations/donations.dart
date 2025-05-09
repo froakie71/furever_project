@@ -1,9 +1,10 @@
+// ignore_for_file: avoid_types_as_parameter_names
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/views/screens/Donations/donation_details_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'bloc/donator_bloc.dart';
-import 'bloc/donator_event.dart';
 import 'bloc/donator_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -38,80 +39,7 @@ class TopDonatorsScreen extends StatelessWidget {
     }
   }
 
-  String _getDisplayName(int index, String email) {
-    // Remove @gmail.com or other email domains
-    String username = email.split('@')[0];
-    // Return "User #X" if username is empty or null
-    return username.isEmpty ? 'User #${index + 1}' : username;
-  }
 
-  void _showAddDonatorDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final amountController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Donator'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator:
-                      (value) =>
-                          value?.isEmpty ?? true ? 'Please enter a name' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: amountController,
-                  decoration: const InputDecoration(
-                    labelText: 'Amount',
-                    prefixText: '₱',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator:
-                      (value) =>
-                          value?.isEmpty ?? true
-                              ? 'Please enter an amount'
-                              : null,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  context.read<DonatorBloc>().add(
-                    AddDonator(
-                      name: nameController.text,
-                      amount: amountController.text,
-                    ),
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

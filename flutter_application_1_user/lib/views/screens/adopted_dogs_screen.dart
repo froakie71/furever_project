@@ -1,4 +1,4 @@
-// ignore_for_file: unused_import, unnecessary_null_comparison
+// ignore_for_file: unused_import, unnecessary_null_comparison, avoid_types_as_parameter_names
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +11,7 @@ import 'package:flutter_application_1_user/views/screens/merch_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1_user/views/widgets/schedule_checkup_modal.dart';
+import 'package:intl/intl.dart'; // Add this import
 
 class AdoptedDogsScreen extends StatefulWidget {
   const AdoptedDogsScreen({super.key});
@@ -169,19 +170,11 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
                       adoptedDogs.length.toString(),
                       'Dogs\nAdopted',
                     ),
-                    _buildStatItem(
-                      _calculateAdoptionYears(adoptedDogs),
-                      'Years as\nAdopter',
-                    ),
-                    _buildStatItem(
-                      _calculateTotalVetVisits(adoptedDogs).toString(),
-                      'Vet Visits\nMade',
-                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              ...adoptedDogs.map((dog) => _buildDogCard(dog)).toList(),
+              ...adoptedDogs.map((dog) => _buildDogCard(dog)),
             ],
           );
         },
@@ -250,7 +243,6 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
                             dogId: dog['dogId'],
                             userId: FirebaseAuth.instance.currentUser!.uid,
                           ),
-                          
                         ),
                       );
                     },
@@ -275,7 +267,7 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
   String _formatDate(dynamic date) {
     if (date is Timestamp) {
       final DateTime dateTime = date.toDate();
-      return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+      return DateFormat('yyyy-MM-dd hh:mm a').format(dateTime);
     }
     return 'Date not available';
   }
@@ -294,85 +286,6 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
           style: const TextStyle(color: Colors.black54),
         ),
       ],
-    );
-  }
-
-  void _showMedicalRecords(BuildContext context, Map<String, dynamic> dog) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            height: MediaQuery.of(context).size.height * 0.6, // Set height
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${dog['dogName']}\'s Medical Records',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      _buildMedicalRecord(
-                        date: 'Mar 15, 2024',
-                        procedure: 'First Vaccination',
-                        notes: 'DHPP vaccine administered',
-                      ),
-                      _buildMedicalRecord(
-                        date: 'Feb 20, 2024',
-                        procedure: 'Initial Checkup',
-                        notes: 'General health assessment - All healthy',
-                      ),
-                      _buildMedicalRecord(
-                        date: 'Feb 10, 2024',
-                        procedure: 'Deworming',
-                        notes: 'Preventive deworming treatment',
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMedicalRecord({
-    required String date,
-    required String procedure,
-    required String notes,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      title: Text(
-        procedure,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          Text(notes),
-          const SizedBox(height: 4),
-          Text(date, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        ],
-      ),
-      leading: const CircleAvatar(
-        backgroundColor: Colors.orange,
-        child: Icon(Icons.medical_services, color: Colors.white, size: 20),
-      ),
     );
   }
 
@@ -602,7 +515,7 @@ class _AdoptedDogsScreenState extends State<AdoptedDogsScreen> {
                             ),
                           ),
                           title: Text(
-                            'Date: ${_formatDate(Timestamp.fromDate(date))}',
+                            'Scheduled for: ${_formatDate(Timestamp.fromDate(date))}',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Column(

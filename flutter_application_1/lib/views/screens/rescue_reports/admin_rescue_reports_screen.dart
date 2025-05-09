@@ -171,8 +171,7 @@ class AdminRescueReportsScreen extends StatelessWidget {
                         ),
                         _buildDetailSection(
                           'Report Date & Time',
-                          _formatDate(report['createdAt']) ??
-                              'Date not available',
+                          _formatDate(report['createdAt']),
                         ),
                         _buildDetailSection(
                           'Phone Number',
@@ -207,17 +206,4 @@ class AdminRescueReportsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _updateReportStatus(String reportId, String status) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('rescue_reports')
-          .doc(reportId)
-          .update({
-            'status': status,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-    } catch (e) {
-      print('Error updating report status: $e');
-    }
-  }
 }

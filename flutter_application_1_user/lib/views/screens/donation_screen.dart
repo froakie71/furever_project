@@ -1,7 +1,6 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1_user/views/screens/donation_details_screen.dart';
 import 'package:flutter_application_1_user/views/screens/home_screen.dart';
 import 'package:flutter_application_1_user/views/widgets/shared_drawer.dart';
 import 'package:intl/intl.dart';
@@ -184,29 +183,6 @@ class _DonationScreenState extends State<DonationScreen> {
     );
   }
 
-  Widget _buildDonationSummary(DonationSuccess state) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Total Donations: ₱${state.totalAmount.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Number of donations: ${state.userDonations.length}',
-            style: const TextStyle(fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildDonationForm(BuildContext context, DonationState state) {
     return Container(
@@ -342,36 +318,8 @@ class _DonationScreenState extends State<DonationScreen> {
     );
   }
 
-  String _getTopDonator(int index) {
-    final donators = [
-      'Maria Santos',
-      'John Smith',
-      'Anna Garcia',
-      'Luis Cruz',
-      'Sarah Lee',
-    ];
-    return donators[index];
-  }
 
-  String _getDonationAmount(int index) {
-    final amounts = ['₱50,000', '₱35,000', '₱25,000', '₱20,000', '₱18,000'];
-    return amounts[index];
-  }
 
-  Widget _getBadge(int index) {
-    final badges = [
-      {'icon': Icons.stars, 'color': Colors.amber},
-      {'icon': Icons.workspace_premium, 'color': Colors.grey},
-      {'icon': Icons.volunteer_activism, 'color': Colors.brown},
-      {'icon': Icons.thumb_up, 'color': Colors.blue},
-      {'icon': Icons.favorite, 'color': Colors.pink},
-    ];
-
-    return Icon(
-      badges[index]['icon'] as IconData,
-      color: badges[index]['color'] as Color,
-    );
-  }
 
   Widget _buildTopDonators(List<Map<String, dynamic>> topDonators) {
     return StreamBuilder<QuerySnapshot>(
@@ -520,86 +468,6 @@ class _DonationScreenState extends State<DonationScreen> {
     );
   }
 
-  Widget _buildDonatorCard(
-    Map<String, dynamic> donator,
-    int index,
-    bool isTopFive,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      shape:
-          isTopFive
-              ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(color: Colors.orange.shade300, width: 2),
-              )
-              : null,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor:
-              isTopFive ? Colors.orange.shade100 : Colors.grey.shade100,
-          child: Text(
-            '${index + 1}',
-            style: TextStyle(
-              color: isTopFive ? Colors.orange.shade800 : Colors.grey.shade800,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text(
-          donator['email'] ?? 'Anonymous',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          '₱${donator['total'].toStringAsFixed(2)}',
-          style: TextStyle(
-            color: Colors.green.shade700,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isTopFive) _getBadge(index),
-            if (isTopFive) const Icon(Icons.chevron_right),
-          ],
-        ),
-        onTap: () {
-          if (isTopFive) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (context) => BlocProvider.value(
-                      value: _donationBloc,
-                      child: DonationDetailsScreen(
-                        userId: donator['userId'],
-                        email: donator['email'],
-                        totalAmount: donator['total'],
-                      ),
-                    ),
-              ),
-            ).then((_) {
-              _donationBloc
-                ..add(LoadDonations())
-                ..add(LoadTopDonators());
-            });
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Only top 5 donors can view detailed donation history',
-                  style: TextStyle(color: Colors.white),
-                ),
-                backgroundColor: Colors.orange,
-              ),
-            );
-          }
-        },
-      ),
-    );
-  }
 
   void _showDonatorDetails(BuildContext context, Map<String, dynamic> donator) {
     showModalBottomSheet(
@@ -837,8 +705,9 @@ class _DonationScreenState extends State<DonationScreen> {
                                           child,
                                           loadingProgress,
                                         ) {
-                                          if (loadingProgress == null)
+                                          if (loadingProgress == null) {
                                             return child;
+                                          }
                                           return Center(
                                             child: CircularProgressIndicator(
                                               value:
@@ -871,89 +740,10 @@ class _DonationScreenState extends State<DonationScreen> {
     );
   }
 
-  void _showNotTopFiveMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Only top 5 donors can view detailed donation history',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.orange,
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
 
   // Add this helper method to show proof images
-  void _showProofImage(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => Dialog(
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-    );
-  }
 
   // Add this method to show full-screen image:
-  void _showFullImage(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: EdgeInsets.zero,
-            child: Stack(
-              fit: StackFit.loose,
-              children: [
-                InteractiveViewer(
-                  minScale: 0.5,
-                  maxScale: 4.0,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.contain,
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value:
-                              loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-              ],
-            ),
-          ),
-    );
-  }
 
   Future<String> _getUsernameFromId(String userId) async {
     try {

@@ -175,320 +175,469 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                         const SizedBox(height: 5),
-                        TextFormField(
-                          controller: _nameController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your name';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Full Name',
-                            filled: true,
-                            fillColor: Colors.white,
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: _nameController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Full Name',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Full Name',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.person,
-                                color: Color(0xFF32649B),
-                              ),
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        const SizedBox(height: 5),
-                        TextFormField(
-                          controller: _addressController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your address';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Address',
-                            filled: true,
-                            fillColor: Colors.white,
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
-                                  ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Color(0xFF32649B),
                                 ),
                               ),
-                              child: const Icon(
-                                Icons.location_on_outlined,
-                                color: Color(0xFF32649B),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your name';
+                              }
+                              return null;
+                            },
                           ),
-                          keyboardType: TextInputType.emailAddress,
                         ),
-                        const SizedBox(height: 5),
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: _addressController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Address',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Address',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.location_on,
+                                  color: Color(0xFF32649B),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your address';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Expanded(
-                              child: TextFormField(
-                                controller: _ageController,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your age';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  labelText: 'Age',
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  prefixIcon: Container(
-                                    margin: const EdgeInsets.only(right: 8),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        right: BorderSide(
-                                          color: Color(0xFF32649B),
-                                          width: 1.0,
+                              child: Container(
+                                height: 60,
+                                child: TextFormField(
+                                  controller: _ageController,
+                                  style: TextStyle(
+                                    color: Color(0xFF32649B),
+                                    fontSize: 16,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Age',
+                                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                                    hintText: 'Age',
+                                    hintStyle: TextStyle(
+                                      color: Color(0xFF32649B).withOpacity(0.5),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    isDense: true,
+                                    prefixIcon: Container(
+                                      width: 60,
+                                      margin: const EdgeInsets.only(right: 8),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          right: BorderSide(
+                                            color: Color(0xFF32649B),
+                                            width: 1.0,
+                                          ),
                                         ),
                                       ),
+                                      child: const Icon(
+                                        Icons.person_outline,
+                                        color: Color(0xFF32649B),
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.person_outline,
-                                      color: Color(0xFF32649B),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(color: Color(0xFF32649B)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 0,
                                     ),
                                   ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your age';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 16),
                             Expanded(
-                              child: TextFormField(
-                                controller: _genderController,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter your gender';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  labelText: 'Gender',
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  prefixIcon: Container(
-                                    margin: const EdgeInsets.only(right: 8),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        right: BorderSide(
-                                          color: Color(0xFF32649B),
-                                          width: 1.0,
+                              child: Container(
+                                height: 60,
+                                child: TextFormField(
+                                  controller: _genderController,
+                                  style: TextStyle(
+                                    color: Color(0xFF32649B),
+                                    fontSize: 16,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: 'Gender',
+                                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                                    hintText: 'Gender',
+                                    hintStyle: TextStyle(
+                                      color: Color(0xFF32649B).withOpacity(0.5),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    isDense: true,
+                                    prefixIcon: Container(
+                                      width: 60,
+                                      margin: const EdgeInsets.only(right: 8),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          right: BorderSide(
+                                            color: Color(0xFF32649B),
+                                            width: 1.0,
+                                          ),
                                         ),
                                       ),
+                                      child: const Icon(
+                                        Icons.person_2_rounded,
+                                        color: Color(0xFF32649B),
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.person_2_rounded,
-                                      color: Color(0xFF32649B),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(color: Color(0xFF32649B)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 0,
                                     ),
                                   ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your gender';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 5),
-                        TextFormField(
-                          controller: _phoneController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your phone number';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Phone Number',
-                            filled: true,
-                            fillColor: Colors.white,
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: _phoneController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Phone Number',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
+                                child: const Icon(
+                                  Icons.phone_outlined,
+                                  color: Color(0xFF32649B),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.phone_outlined,
-                                color: Color(0xFF32649B),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your phone number';
+                              }
+                              return null;
+                            },
                           ),
                         ),
-                        const SizedBox(height: 5),
-                        TextFormField(
-                          controller: _usernameController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a username';
-                            }
-                            // Add username format validation
-                            if (value.length < 3) {
-                              return 'Username must be at least 3 characters';
-                            }
-                            if (value.contains(' ')) {
-                              return 'Username cannot contain spaces';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Username',
-                            filled: true,
-                            fillColor: Colors.white,
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: _usernameController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Username',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Username',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
+                                child: const Icon(
+                                  Icons.account_circle_outlined,
+                                  color: Color(0xFF32649B),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.account_circle_outlined,
-                                color: Color(0xFF32649B),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a username';
+                              }
+                              if (value.length < 3) {
+                                return 'Username must be at least 3 characters';
+                              }
+                              if (value.contains(' ')) {
+                                return 'Username cannot contain spaces';
+                              }
+                              return null;
+                            },
                           ),
                         ),
-                        const SizedBox(height: 5),
-                        TextFormField(
-                          controller: _emailController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            filled: true,
-                            fillColor: Colors.white,
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: _emailController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Email',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
+                                child: const Icon(
+                                  Icons.email_outlined,
+                                  color: Color(0xFF32649B),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.email_outlined,
-                                color: Color(0xFF32649B),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              return null;
+                            },
                           ),
-                          keyboardType: TextInputType.emailAddress,
                         ),
-                        const SizedBox(height: 5),
-                        TextFormField(
-                          controller: _passwordController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            filled: true,
-                            fillColor: Colors.white,
-                            prefixIcon: Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  right: BorderSide(
-                                    color: Color(0xFF32649B),
-                                    width: 1.0,
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 60,
+                          child: TextFormField(
+                            controller: _passwordController,
+                            style: TextStyle(
+                              color: Color(0xFF32649B),
+                              fontSize: 16,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              floatingLabelBehavior: FloatingLabelBehavior.never,
+                              hintText: 'Password',
+                              hintStyle: TextStyle(
+                                color: Color(0xFF32649B).withOpacity(0.5),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              prefixIcon: Container(
+                                width: 60,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    right: BorderSide(
+                                      color: Color(0xFF32649B),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
+                                child: const Icon(
+                                  Icons.lock_outline,
+                                  color: Color(0xFF32649B),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.lock_outline,
-                                color: Color(0xFF32649B),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                borderSide: BorderSide(color: Color(0xFF32649B), width: 2),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 0,
                               ),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
                           ),
-                          obscureText: true,
                         ),
                         const SizedBox(height: 30),
                         SizedBox(

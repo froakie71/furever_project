@@ -13,3 +13,5 @@ class DogError extends DogState {
 }
 
 class AdoptionProcessed extends DogState {}
+
+class DogDeleted extends DogState {}

@@ -1,11 +1,9 @@
 // lib/views/admin_home_view.dart
+// ignore_for_file: deprecated_member_use
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/views/screens/authentication/bloc/auth_bloc.dart';
-import 'package:flutter_application_1/views/screens/authentication/bloc/auth_event.dart';
-import 'package:flutter_application_1/views/screens/authentication/login/admin_signin_view.dart';
 import 'package:flutter_application_1/views/widgets/shared_drawer.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 // Helper class for bar chart data
@@ -585,14 +583,6 @@ class AdminHomeView extends StatelessWidget {
     );
   }
 
-  void _handleLogout(BuildContext context) {
-    context.read<AuthBloc>().add(SignOutRequested());
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => AdminSignInView()),
-      (route) => false,
-    );
-  }
 
   Widget _buildClientGrowthChart() {
     return StreamBuilder<QuerySnapshot>(

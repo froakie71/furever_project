@@ -73,8 +73,6 @@ class _SharedDrawerState extends State<SharedDrawer> {
               final userName = userData?['username'] ?? 'User';
               final userEmail =
                   userData?['email'] ?? _auth.currentUser?.email ?? '';
-              final userPhotoUrl =
-                  userData?['user_profiles'] ?? userData?['profileImage'];
 
               return UserAccountsDrawerHeader(
                 decoration: const BoxDecoration(color: Color(0xFF32649B)),
@@ -323,9 +321,8 @@ class _SharedDrawerState extends State<SharedDrawer> {
 class MyAppBarWithBadge extends StatefulWidget implements PreferredSizeWidget {
   @override
   final Size preferredSize;
-  MyAppBarWithBadge({Key? key})
-    : preferredSize = const Size.fromHeight(kToolbarHeight),
-      super(key: key);
+  const MyAppBarWithBadge({super.key})
+    : preferredSize = const Size.fromHeight(kToolbarHeight);
 
   @override
   State<MyAppBarWithBadge> createState() => _MyAppBarWithBadgeState();

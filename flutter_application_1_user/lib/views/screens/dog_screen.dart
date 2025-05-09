@@ -148,20 +148,53 @@ class DogScreen extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4),
+                    top: Radius.circular(8),
                   ),
-                  child: Image.network(
-                    dog.imageUrl,
-                    height: 200,
+                  child: Container(
+                    height: 300,
                     width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.error),
-                      );
-                    },
+                    child: Image.network(
+                      dog.imageUrl,
+                      fit: BoxFit.cover,
+                      cacheHeight: 400,
+                      cacheWidth: 600,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            color: const Color(0xFF32649B),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 200,
+                          color: Colors.grey[300],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 40,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Unable to load image',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 if (dog.status == 'adopted' || dog.status == 'pending')
@@ -369,7 +402,7 @@ class DogScreen extends StatelessWidget {
       ),
       builder: (BuildContext context) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.8,
+          height: MediaQuery.of(context).size.height * 0.85, // Increased height for more space
           padding: const EdgeInsets.all(20),
           child: SingleChildScrollView(
             child: Column(
@@ -379,9 +412,22 @@ class DogScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   child: Image.network(
                     dog.imageUrl,
-                    height: 200,
+                    // Using constraints instead of fixed height
+                    height: MediaQuery.of(context).size.height * 0.35, // Adaptive height based on screen size
                     width: double.infinity,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain, // Changed to contain to show the full image
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: const Color(0xFF32649B),
+                        ),
+                      );
+                    },
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         height: 200,
